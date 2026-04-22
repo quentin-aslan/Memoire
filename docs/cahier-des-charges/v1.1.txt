@@ -1,0 +1,2304 @@
+
+
+
+
+
+
+
+
+MÉMOIRE
+
+
+
+Calm luxury for the curious mind
+
+
+
+
+
+
+
+
+
+CAHIER DES CHARGES — Version 1.1
+
+
+
+7 avril 2026 — Mis à jour avec : Supabase, monitoring, score de régularité, vue détail carte
+
+
+
+Application iOS native de répétition espacée optimisée TDAH
+
+
+
+
+
+Quentin Aslan — contact@quentinaslan.com
+
+
+
+
+
+
+
+Changelog v1.0 → v1.1
+
+
+
+
+
+Backend : Supabase remplace CloudKit (cross-platform, SQL, portabilité)
+
+
+
+
+
+Notification : 18h par défaut (chronotype TDAH) + question pendant l’onboarding
+
+
+
+
+
+Streak → Score de régularité : « 14/30 jours », jamais punitif, jamais de reset
+
+
+
+
+
+Vue détail carte : nouvel écran montrant le planning FSRS de chaque carte
+
+
+
+
+
+Monitoring : section complète avec 10 événements, code Swift, 5 dashboards
+
+
+
+
+
+Light theme : architecture Asset Catalog prête en V1, ship dark-only au lancement
+
+
+
+
+
+États vides : spécifiés pour 0 decks, 0 cartes, post-onboarding
+
+
+
+
+
+
+
+
+
+
+1. Vision et philosophie produit
+
+
+
+
+
+1.1 Le problème
+
+
+
+La répétition espacée est la technique d’apprentissage n°1 (Dunlosky et al. 2013, Cepeda et al. 2006 : +200% de rétention). Pourtant, aucune app ne fonctionne pour les adultes TDAH. Anki : interface de 2006, « ease hell ». RemNote : courbe d’apprentissage raide. Mochi : algo faible. Quizlet : paywall agressif.
+
+
+
+
+
+1.2 L’insight fondamental
+
+
+
+Le déficit mémoire du TDAH se situe à l’encodage, pas au rappel (Skodzik et al. 2017). Coane et al. (2023) : la répétition espacée fonctionne exactement aussi bien pour les TDAH. Le problème n’est pas l’algorithme — c’est l’expérience.
+
+
+
+
+
+1.3 La solution
+
+
+
+Mémoire : app iOS native combinant FSRS (20–30% de révisions en moins que SM-2) + UX « calm luxury » qui élimine la friction et récompense la consistance sans punir l’inconsistance.
+
+
+
+
+
+1.4 Audience et marché
+
+
+
+Adultes TDAH professionnels (25–40 ans). 366M adultes TDAH dans le monde. Apps flashcards : 2,5B$ (+15%/an). Créneau « algo + TDAH-first + premium + pro » = complètement vide.
+
+
+
+
+
+1.5 Principes fondateurs
+
+
+
+
+
+L’app ne juge pas, elle observe. « 14 jours sur 30 », pas « 16 jours manqués ».
+
+
+
+
+
+Friction zéro. Un tap → première carte.
+
+
+
+
+
+Micro-sessions. 5–15 min. Cap par temps.
+
+
+
+
+
+Calm luxury. Bibliothèque privée à l’heure dorée.
+
+
+
+
+
+Offline-first. Fonctionne sans réseau. Sync transparente.
+
+
+
+
+
+Transparence algorithmique. L’utilisateur voit quand et pourquoi chaque carte apparaît.
+
+
+
+
+
+
+
+
+
+
+2. Principes UX fondés sur la recherche TDAH
+
+
+
+Dérivés de McKnight (2010, validés Gunawardana 2025), Neurodiversity Design System, et recherche neuro TDAH.
+
+
+
+
+
+2.1 Réduire la surcharge sensorielle
+
+
+
+69% des adultes TDAH rapportent une photophobie (Kooij & Bijlenga, 2014). Fond sombre par défaut. Zéro élément clignotant. Respect de prefers-reduced-motion.
+
+
+
+
+
+2.2 Un écran = une action
+
+
+
+Loi de Hick : plus d’options = plus d’indécision. 3 boutons, pas 4 ou 6.
+
+
+
+
+
+2.3 Feedback immédiat sans culpabilité
+
+
+
+Délai action→récompense = zéro. Haptique à chaque tap. Jamais de rouge punitif.
+
+
+
+
+
+2.4 Progressivité
+
+
+
+Barre de progression, compteur « 12/30 ». Progressive disclosure après 3+ sessions.
+
+
+
+
+
+2.5 Consistance
+
+
+
+Layouts fixes. Boutons toujours au même endroit. Transitions prévisibles.
+
+
+
+
+
+2.6 Gestion de l’anxiété de backlog
+
+
+
+Ne jamais afficher le total en retard. Rééchelonnement par récupérabilité. « Content de te revoir ! Voici 10 cartes pour reprendre. »
+
+
+
+
+
+2.7 Transparence algorithmique (NOUVEAU v1.1)
+
+
+
+L’utilisateur doit pouvoir comprendre pourquoi une carte apparaît ou n’apparaît pas. La vue détail carte (cf. §3.9) montre la prochaine date de révision, la difficulté, et l’historique. Cela évite le décrochage dû à l’incompréhension (« pourquoi cette carte n’apparaît plus depuis 15 jours ? »).
+
+
+
+
+
+
+
+
+
+
+3. Architecture des écrans
+
+
+
+
+
+3.1 Navigation
+
+
+
+Tab bar 4 onglets : Accueil, Réviser, Paquets, Réglages. Active : #D4AF37. Inactive : #636366.
+
+
+
+
+
+3.2 Écran Accueil
+
+
+
+3 informations max :
+
+
+
+
+
+Cartes dues — nombre + anneau de progression Apple Fitness
+
+
+
+
+
+Score de régularité — « 14/30 jours » avec icône or (pas de flamme qui s’éteint)
+
+
+
+
+
+CTA — « Commencer la révision », bouton or pleine largeur 52pt
+
+
+
+Temps de session estimé sous le CTA (« ~5 min »).
+
+
+
+3.2.A Score de régularité (MODIFIÉ v1.1)
+
+
+
+Remplace le concept de « streak ». Affiche le nombre de jours avec au moins une révision complétée sur les 30 derniers jours. Format : « 14/30 jours ». Icône : cercle doré avec le ratio rempli (comme un mini anneau). L’icône reste dorée quel que soit le score. Manquer un jour ne casse rien, ne réinitialise rien. Le score monte et descend naturellement avec la fenêtre glissante de 30 jours.
+
+
+
+Pourquoi pas un streak : les streaks consécutifs créent de l’anxiété (Duolingo a dû retravailler sa stratégie). Le score glissant récompense la régularité sans punir l’absence.
+
+
+
+3.2.B État vide — aucun deck (NOUVEAU v1.1)
+
+
+
+Illustration minimaliste (ou icône dorée), texte : « Créez votre premier paquet pour commencer à apprendre. » Bouton « + Créer un paquet ». Option secondaire : « Essayer le deck de démonstration ».
+
+
+
+3.2.C État vide — 0 cartes dues
+
+
+
+« Aucune carte à réviser aujourd’hui. Revenez demain ! » Anneau plein en or. Option : « Ajouter de nouvelles cartes ».
+
+
+
+
+
+3.3 Écran de révision (modal)
+
+
+
+Masque la tab bar. Carte centrée, barre de progression fine (3–4pt, or), compteur « 12/30 » (SF Pro 13pt), boutons après flip. Pas de timer, pas de nom de deck, pas de stats.
+
+
+
+3.3.A Flip
+
+
+
+Tap pour révéler. Rotation 3D axe Y, spring(0.5, 0.7). Haptique .medium.
+
+
+
+3.3.B Boutons de notation
+
+
+
+3 boutons horizontaux. 16pt marges, 8–10pt gaps. ~105pt × 52pt.
+
+Bouton
+
+Couleur
+
+FSRS
+
+Émotion
+
+
+
+Raté
+
+
+
+#FF6B6B corail
+
+
+
+1
+
+
+
+Correction douce, pas de punition
+
+
+
+Moyen
+
+
+
+#D4AF37 or
+
+
+
+3
+
+
+
+Satisfaction (bouton par défaut/principal)
+
+
+
+Facile
+
+
+
+#4ADE80 vert
+
+
+
+4
+
+
+
+Maîtrise confirmée
+
+
+
+Toujours coupler couleurs + icônes (✕ / ○ / ✓) pour les daltoniens.
+
+
+
+
+
+3.4 Complétion
+
+
+
+Coche dorée, scale-up+fade 0.5s. « Parfait. Toutes vos révisions sont terminées. » Résumé bref. Pas de confettis.
+
+
+
+
+
+3.5 Gestion des decks
+
+
+
+Liste : nom, nb cartes, cartes dues, indicateur couleur. CRUD + réordonnancement. Pas de sous-decks, pas de tags.
+
+
+
+
+
+3.6 Création de cartes
+
+
+
+Q + R texte brut. Bouton + visible. Ajout rapide : formulaire se vide après création.
+
+
+
+
+
+3.7 Onboarding (4 écrans)
+
+
+
+
+
+Bienvenue + proposition de valeur
+
+
+
+
+
+Visuel animé du cycle flip-note (3s)
+
+
+
+
+
+Création premier deck OU démo + question heure de notification préférée (MODIFIÉ v1.1)
+
+
+
+
+
+Premier cycle de révision avec carte d’exemple
+
+
+
+Option « Passer » toujours visible. Notification par défaut : 18h (chronotype TDAH du soir, ~75% phase-delayed).
+
+
+
+
+
+3.8 Réglages
+
+
+
+
+
+Durée de session (défaut : 15 min)
+
+
+
+
+
+Nouvelles cartes / jour (défaut : 10)
+
+
+
+
+
+Heure de notification (défaut : 18h)
+
+
+
+
+
+Rétention désirée (défaut : 0.90, avancé)
+
+
+
+
+
+Export / Import JSON
+
+
+
+
+
+Supprimer toutes les données (RGPD)
+
+
+
+
+
+À propos / Politique de confidentialité / Version
+
+
+
+
+
+3.9 Vue détail carte (NOUVEAU v1.1)
+
+
+
+Accessible par tap sur une carte dans la liste du deck. Montre :
+
+
+
+
+
+Question et réponse — contenu de la carte
+
+
+
+
+
+Prochaine révision — date exacte (« 22 avril 2026 ») + délai relatif (« dans 8 jours »)
+
+
+
+
+
+Niveau de difficulté — en langage clair : Facile / Moyenne / Difficile (pas le score FSRS brut)
+
+
+
+
+
+Nombre de révisions — total de fois révisée
+
+
+
+
+
+Dernière révision — date
+
+
+
+
+
+État — Nouvelle / En apprentissage / En révision / En réapprentissage
+
+
+
+Objectif : l’utilisateur comprend que « cette carte n’apparaît pas parce que l’algo estime que tu t’en souviens bien — elle reviendra le 22 avril ». Élimine l’anxiété de « l’app a oublié ma carte ».
+
+
+
+
+
+
+
+
+
+
+4. Design System
+
+
+
+
+
+4.1 Palette dark mode
+
+
+
+4.1.A Surfaces
+
+Token
+
+Hex
+
+Usage
+
+
+
+background.primary
+
+
+
+#1C1C1E
+
+
+
+Canvas principal
+
+
+
+background.card
+
+
+
+#2C2C2E
+
+
+
+Flashcards, sections
+
+
+
+background.elevated
+
+
+
+#3A3A3C
+
+
+
+Modals, champs de saisie
+
+
+
+4.1.B Texte
+
+Token
+
+Hex
+
+Usage + contraste
+
+
+
+text.primary
+
+
+
+#F5F5F7
+
+
+
+Labels UI (15,2:1 AAA)
+
+
+
+text.reading
+
+
+
+#F2EDE4
+
+
+
+Contenu cartes — blanc chaud (13,5:1 AAA)
+
+
+
+text.secondary
+
+
+
+#EBEBF5 @60%
+
+
+
+Métadonnées (8,5:1 AAA)
+
+
+
+4.1.C Accents
+
+Token
+
+Hex
+
+Usage
+
+
+
+accent.gold
+
+
+
+#D4AF37
+
+
+
+CTA, régularité (8,56:1 AAA)
+
+
+
+accent.gold.light
+
+
+
+#E5C564
+
+
+
+États pressés
+
+
+
+accent.gold.dark
+
+
+
+#B8942E
+
+
+
+États désactivés
+
+
+
+state.again
+
+
+
+#FF6B6B
+
+
+
+Corail doux (pas rouge)
+
+
+
+state.good
+
+
+
+#D4AF37
+
+
+
+Or marque
+
+
+
+state.easy
+
+
+
+#4ADE80
+
+
+
+Vert doux
+
+
+
+
+
+4.2 Architecture light theme (NOUVEAU v1.1)
+
+
+
+Dark-only au lancement. Mais l’architecture de couleurs utilise des Asset Catalog named color sets dès le jour 1, permettant d’ajouter le light theme en ~2h de travail. Règle : ne jamais hardcoder Color(.init(red:green:blue:)), toujours utiliser Color("nomSémantique").
+
+
+
+Palette light prête (pour V1.1 ou V2) :
+
+Rôle
+
+Dark
+
+Light
+
+Contraste light
+
+
+
+Fond principal
+
+
+
+#1C1C1E
+
+
+
+#FAF7F2
+
+
+
+—
+
+
+
+Surface carte
+
+
+
+#2C2C2E
+
+
+
+#FFFFFF
+
+
+
+—
+
+
+
+Texte principal
+
+
+
+#F5F5F7
+
+
+
+#2C2417
+
+
+
+14,3:1 AAA
+
+
+
+Texte secondaire
+
+
+
+#EBEBF5@60%
+
+
+
+#6B5E50
+
+
+
+5,9:1 AA
+
+
+
+Accent or
+
+
+
+#D4AF37
+
+
+
+#8B6914
+
+
+
+4,7:1 AA
+
+
+
+Succès
+
+
+
+#4ADE80
+
+
+
+#2D6A3F
+
+
+
+6,2:1 AA
+
+
+
+Erreur
+
+
+
+#FF6B6B
+
+
+
+#B82525
+
+
+
+6,5:1 AA
+
+
+
+#D4AF37 n’a que 2,1:1 sur fond blanc — inaccessible. L’or light doit être #8B6914 pour le texte.
+
+
+
+
+
+4.3 Typographie
+
+Token
+
+Police
+
+Graisse
+
+Taille
+
+Ligne
+
+Note
+
+
+
+card.question
+
+
+
+New York
+
+
+
+Semibold
+
+
+
+24pt
+
+
+
+1,3×
+
+
+
+Centré
+
+
+
+card.answer
+
+
+
+New York
+
+
+
+Regular
+
+
+
+20pt
+
+
+
+1,6×
+
+
+
+Auto-align >80 chars
+
+
+
+ui.largeTitle
+
+
+
+SF Pro
+
+
+
+Bold
+
+
+
+34pt
+
+
+
+1,2×
+
+
+
+Accueil
+
+
+
+ui.body
+
+
+
+SF Pro
+
+
+
+Regular
+
+
+
+17pt
+
+
+
+1,29×
+
+
+
+UI générale
+
+
+
+ui.ratingBtn
+
+
+
+SF Pro
+
+
+
+Bold
+
+
+
+15pt
+
+
+
+1,33×
+
+
+
+Boutons notation
+
+
+
+ui.caption
+
+
+
+SF Pro
+
+
+
+Regular
+
+
+
+12pt
+
+
+
+1,33×
+
+
+
+Méta, détail carte
+
+
+
+
+
+4.4 Animations et haptics
+
+
+
+
+
+Flip : rotation3DEffect 180° Y, spring(0.5, 0.7), haptic .medium
+
+
+
+
+
+Bonne réponse : shimmer doré 300ms, haptic .success
+
+
+
+
+
+Mauvaise réponse : shake 2–3 osc. 250ms, haptic .warning
+
+
+
+
+
+Complétion : coche dorée scale-up 500ms, haptic .success
+
+
+
+
+
+Reduce Motion : swap instantané
+
+
+
+
+
+
+
+
+
+
+5. Algorithme FSRS
+
+
+
+
+
+5.1 Pourquoi FSRS
+
+
+
+Surpasse SM-2 pour 99,6% des utilisateurs (benchmark 350M révisions). 20–30% de révisions en moins. Élimine le « ease hell ». Gère les révisions retardées (critique TDAH).
+
+
+
+
+
+5.2 Modèle DSR
+
+
+
+
+
+D (Difficulté, 1–10) : intrinsèque, réversion vers la moyenne
+
+
+
+
+
+S (Stabilité, jours) : temps pour que R tombe à 90%
+
+
+
+
+
+R (Récupérabilité) : P(rappel) = (1 + factor × t/S)^(−decay)
+
+
+
+
+
+5.3 Implémentation
+
+
+
+Package 4rays/swift-fsrs (MIT, Swift, v5). Protocole SpacedRepetitionScheduler pour abstraction.
+
+
+
+
+
+5.4 Étapes d’apprentissage
+
+
+
+1 min → 10 min → fin de session → jour suivant. Puis FSRS standard.
+
+
+
+
+
+5.5 Rétention désirée
+
+
+
+Défaut : 0.90. Ajustable 0.80–0.95.
+
+
+
+Note : les modifications TDAH de FSRS (victoires faciles, backlog-aware, variabilité) sont reportées en V2. Les paramètres par défaut entraînés sur 20K+ users fonctionnent bien pour le MVP.
+
+
+
+
+
+
+
+
+
+
+6. Modèle de données
+
+
+
+
+
+6.1 Deck
+
+
+
+id: UUID, name: String, position: Int, createdAt: Date, cards: [Card], isDeleted: Bool, deletedAt: Date?, syncVersion: Int
+
+
+
+
+
+6.2 Card
+
+
+
+id: UUID, front: String, back: String, deck: Deck?, createdAt: Date
+
+
+
+FSRS : fsrsDifficulty: Double=5.0, fsrsStability: Double=0.0, fsrsState: Int=0, fsrsLastReview: Date?, fsrsReps: Int=0, fsrsLapses: Int=0, nextReviewDate: Date?
+
+
+
+Sync : isDeleted: Bool, deletedAt: Date?, syncVersion: Int, syncStatus: Int (synced=0, pendingCreate=1, pendingUpdate=2, pendingDelete=3, failed=4)
+
+
+
+
+
+6.3 ReviewLog
+
+
+
+id: UUID, cardId: UUID, reviewDate: Date, rating: Int, state: Int, elapsedSeconds: Double, scheduledDays: Double, preDifficulty: Double, preStability: Double
+
+
+
+Stocker tous les logs — essentiels pour l’optimisation FSRS future.
+
+
+
+
+
+6.4 UserSettings
+
+
+
+dailyNewCards: 10, sessionTimeLimit: 15min, desiredRetention: 0.90, notificationHour: 18, regularityDays: [Date] (30 derniers jours avec révision)
+
+
+
+
+
+6.5 Préparation sync Supabase
+
+
+
+UUID partout. Suppression douce. Compteurs de version. SyncStatus enum. Last-writer-wins via updated_at. Propriétés optionnelles ou avec défauts.
+
+
+
+
+
+
+
+
+
+
+7. Stack technique
+
+
+
+
+
+7.1 iOS
+
+Composant
+
+Choix
+
+
+
+Langage
+
+
+
+Swift 6
+
+
+
+UI
+
+
+
+SwiftUI 100%
+
+
+
+iOS min
+
+
+
+iOS 17 (98%+ appareils)
+
+
+
+Persistance locale
+
+
+
+SwiftData (@Model, @Query)
+
+
+
+Algorithme
+
+
+
+FSRS via 4rays/swift-fsrs (MIT)
+
+
+
+Architecture
+
+
+
+MVVM avec @Observable
+
+
+
+Tests
+
+
+
+Swift Testing framework
+
+
+
+
+
+7.2 Backend (MODIFIÉ v1.1 : Supabase)
+
+
+
+Supabase remplace CloudKit. Raisons : cross-platform (même DB pour iOS + future PWA Vue.js), SQL familier, data portability (pg_dump), Sign in with Apple natif, Row-Level Security.
+
+
+
+Architecture : SwiftData local-first → couche sync custom (~200–400 lignes) → Supabase cloud. Toutes les écritures touchent SwiftData d’abord. Sync en background quand le réseau est disponible.
+
+
+
+MVP sans sync. La couche Supabase sync est reportée en V1.1. Le MVP fonctionne en SwiftData local-only. L’architecture (SyncStatus, UUID, soft deletes) est prête dès le jour 1.
+
+
+
+
+
+7.3 Pricing
+
+Composant
+
+Coût
+
+Note
+
+
+
+Supabase
+
+
+
+0€ (free tier)
+
+
+
+500Mo DB, 50K MAU. Pro à 25$/mois avant launch
+
+
+
+TelemetryDeck
+
+
+
+0€
+
+
+
+100K signaux/mois
+
+
+
+Firebase Crashlytics
+
+
+
+0€
+
+
+
+Illimité
+
+
+
+Apple Developer
+
+
+
+99€/an
+
+
+
+TestFlight, App Store, CloudKit
+
+TOTAL
+
+99€/an
+
+0€/mois d’infrastructure
+
+
+
+
+
+
+
+
+
+
+8. Monitoring et analytics (NOUVEAU v1.1)
+
+
+
+
+
+8.1 Stack monitoring
+
+Couche
+
+Outil
+
+Coût
+
+Rôle
+
+
+
+Usage
+
+
+
+TelemetryDeck
+
+
+
+0€
+
+
+
+DAU, funnels, rétention, features (RGPD natif, pas de ATT)
+
+
+
+Crashs
+
+
+
+Firebase Crashlytics
+
+
+
+0€
+
+
+
+Crashs, breadcrumbs, alertes temps réel
+
+
+
+Performance
+
+
+
+MetricKit
+
+
+
+0€
+
+
+
+Temps lancement, frame drops, mémoire (natif Apple)
+
+
+
+Backend
+
+
+
+Supabase Dashboard
+
+
+
+0€
+
+
+
+Requêtes, latence, connexions, logs
+
+
+
+Zéro prompt ATT. TelemetryDeck anonymise côté client (double hachage). Crashlytics via FirebaseAnalyticsWithoutAdIdSupport.
+
+
+
+
+
+8.2 Les 10 événements à tracker
+
+
+
+Convention de nommage : dot notation (Namespace.eventName).
+
+Événement
+
+Paramètres
+
+Pourquoi
+
+
+
+App.launched
+
+
+
+—
+
+
+
+DAU
+
+
+
+Onboarding.stepCompleted
+
+
+
+step, stepName, completed
+
+
+
+Conversion onboarding
+
+
+
+Deck.created
+
+
+
+deckID, initialCardCount
+
+
+
+Création de contenu
+
+
+
+Review.sessionStarted
+
+
+
+deckID, totalCards
+
+
+
+Est-ce qu’ils commencent ?
+
+
+
+Review.cardReviewed
+
+
+
+rating, responseTimeMs
+
+
+
+Qualité apprentissage
+
+
+
+Review.sessionCompleted
+
+
+
+cardsCount, duration, accuracy
+
+
+
+Est-ce qu’ils finissent ?
+
+
+
+Review.sessionAbandoned
+
+
+
+cardsRemaining, duration
+
+
+
+Où décrochent-ils ?
+
+
+
+Engagement.regularityScore
+
+
+
+daysLast30
+
+
+
+Habitude formée ?
+
+
+
+Sync.failed
+
+
+
+errorCode, retryCount
+
+
+
+Problèmes techniques
+
+
+
+Notification.opened
+
+
+
+—
+
+
+
+Efficacité des notifs
+
+
+
+
+
+8.3 Cibles de rétention
+
+Métrique
+
+Moyenne Éduc.
+
+Cible Mémoire
+
+
+
+Rétention J1
+
+
+
+14–15%
+
+
+
+20–25%
+
+
+
+Rétention J7
+
+
+
+5–7%
+
+
+
+10–15%
+
+
+
+Rétention J30
+
+
+
+2–3%
+
+
+
+5–8% (PMF signal)
+
+
+
+Complétion session
+
+
+
+N/A
+
+
+
+>70%
+
+
+
+
+
+
+
+
+
+
+9. Features MVP
+
+
+
+11 features core (mis à jour v1.1) :
+
+
+
+
+
+Création manuelle de cartes — Q+R texte brut
+
+
+
+
+
+Organisation en decks multiples — CRUD + réordonnancement
+
+
+
+
+
+Algorithme FSRS — swift-fsrs, paramètres par défaut
+
+
+
+
+
+Session de révision — 3 boutons, flip, progression
+
+
+
+
+
+Tableau de bord d’accueil — Cartes dues, régularité, CTA
+
+
+
+
+
+Vue détail carte — Planning FSRS, difficulté, historique (NOUVEAU)
+
+
+
+
+
+Score de régularité — X/30 jours glissant, jamais punitif (MODIFIÉ)
+
+
+
+
+
+Dark mode — Architecture Asset Catalog prête pour light theme futur
+
+
+
+
+
+Notification quotidienne — 18h par défaut, configurable pendant onboarding
+
+
+
+
+
+Onboarding — 4 écrans, 1ère révision guidée, question heure notif
+
+
+
+
+
+Monitoring — TelemetryDeck + Crashlytics + MetricKit, 10 événements
+
+
+
+
+
+9.1 Exclusions explicites du MVP
+
+
+
+Sync Supabase (V1.1), light theme visuel (V1.1), rich text, images, import Anki/CSV, IA, web, cloze, tags, recherche, stats avancées, decks partagés, Watch, widgets, modifications TDAH de FSRS.
+
+
+
+
+
+
+
+
+
+
+10. Anti-patterns
+
+
+
+
+
+Afficher le backlog total. Toujours « Voici 10 cartes ».
+
+
+
+
+
+Utiliser du rouge. Corail #FF6B6B uniquement.
+
+
+
+
+
+Punir l’absence. Pas de streak cassé, pas de reset, pas de « manqué X jours ».
+
+
+
+
+
+Timer pendant la révision. Anxiété TDAH.
+
+
+
+
+
+>3 actions par écran. Un écran = une action.
+
+
+
+
+
+Animations décoratives. But fonctionnel uniquement.
+
+
+
+
+
+Login obligatoire. Sign in with Apple uniquement quand sync ajoutée.
+
+
+
+
+
+Stats négatives. « 14/30 » jamais « 16 manqués ».
+
+
+
+
+
+Cacher le fonctionnement de l’algo. La vue détail carte montre le planning. (NOUVEAU)
+
+
+
+
+
+Texte justifié. Crée des rivières = lecture TDAH dégradée.
+
+
+
+
+
+
+
+
+
+
+11. Roadmap
+
+
+
+
+
+11.1 V1.1 (post-MVP immédiat)
+
+
+
+
+
+Sync Supabase (couche SwiftData → Supabase, ~1-2 semaines)
+
+
+
+
+
+Sign in with Apple (nécessaire pour la sync)
+
+
+
+
+
+Light theme (palette prête, ~2h de config Asset Catalog + 1j tests)
+
+
+
+
+
+11.2 V2
+
+#
+
+Feature
+
+Diff.
+
+Impact
+
+Temps
+
+
+
+1
+
+
+
+Widgets Accueil + Lock screen
+
+
+
+Moyen
+
+
+
+Élevé
+
+
+
+1–2 sem
+
+
+
+2
+
+
+
+Modifications TDAH de FSRS
+
+
+
+Moyen
+
+
+
+Élevé
+
+
+
+1 sem
+
+
+
+3
+
+
+
+Cloze deletion
+
+
+
+Moyen
+
+
+
+Élevé
+
+
+
+1–2 sem
+
+
+
+4
+
+
+
+Images dans les cartes
+
+
+
+Moyen
+
+
+
+Élevé
+
+
+
+1–2 sem
+
+
+
+5
+
+
+
+Stats avancées
+
+
+
+Moyen
+
+
+
+Élevé
+
+
+
+2 sem
+
+
+
+6
+
+
+
+Génération IA de cartes
+
+
+
+Difficile
+
+
+
+Très élevé
+
+
+
+2–3 sem
+
+
+
+7
+
+
+
+Import Anki .apkg
+
+
+
+Difficile
+
+
+
+Élevé
+
+
+
+2–3 sem
+
+
+
+8
+
+
+
+Version web (Vue.js PWA)
+
+
+
+Moyen
+
+
+
+Élevé
+
+
+
+2–3 sem
+
+
+
+
+
+
+
+
+
+
+12. Plan de développement
+
+
+
+Timeline réaliste : 5–7 semaines avec Claude Max 5x + Claude Code + XcodeBuildMCP + Copilot Xcode. Apprentissage Swift inclus. Répartition : 30% humain / 70% IA.
+
+#
+
+Durée
+
+Focus
+
+Livrable
+
+
+
+0
+
+
+
+1 sem
+
+
+
+Apprentissage Swift
+
+
+
+Crash course, 2-3 exercices, setup Xcode + Claude Code + CLAUDE.md
+
+
+
+1
+
+
+
+2 sem
+
+
+
+MVP brutal
+
+
+
+Créer, réviser, persister. SwiftData + FSRS. Design brut fonctionnel.
+
+
+
+2
+
+
+
+2 sem
+
+
+
+App Store ready
+
+
+
+Dark mode polish, onboarding, notif, réglages, vue détail carte, régularité. TelemetryDeck + Crashlytics.
+
+
+
+3
+
+
+
+1-2 sem
+
+
+
+TestFlight + Launch
+
+
+
+Icône, screenshots, privacy policy. Beta 100-200 testeurs. Soumission.
+
+
+
+
+
+12.1 Outils de développement
+
+Outil
+
+Coût
+
+Rôle
+
+
+
+Xcode
+
+
+
+Gratuit
+
+
+
+IDE principal
+
+
+
+Claude Max 5x
+
+
+
+100$/mois
+
+
+
+Génération code, architecture, refactoring
+
+
+
+XcodeBuildMCP
+
+
+
+Gratuit
+
+
+
+Build/test/screenshot automatisés
+
+
+
+GitHub Copilot Xcode
+
+
+
+10$/mois
+
+
+
+Complétions en ligne
+
+
+
+SwiftUI Agent Skill
+
+
+
+Gratuit
+
+
+
+Corrige les patterns dépréciés de Claude
+
+
+
+
+
+12.2 Pricing de l’app
+
+
+
+
+
+Gratuit : 3 decks, 100 cartes, FSRS, régularité, dark mode
+
+
+
+
+
+Pro (3,99$/mois ou 29,99$/an) : Illimité, stats, import/export, sync
+
+
+
+
+
+Essai 7 jours Pro. Gestion via RevenueCat (gratuit <2,5K MRR).
+
+
+
+
+
+12.3 Lancement
+
+
+
+#BuildInPublic X/LinkedIn. Product Hunt. r/ADHD. r/iOSProgramming. Hacker News Show HN. IndieHackers. Open core : algo + composants accessibility en open-source.
+
+
+
+
+
+
+
+
+
+Fin du cahier des charges — Mémoire v1.1
+
+
+
+
+

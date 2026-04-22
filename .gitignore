@@ -1,0 +1,37 @@
+# ── Xcode user data (personal, never shared) ─────────────────────────────────
+xcuserdata/
+*.xcuserstate
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# ── Build artifacts ───────────────────────────────────────────────────────────
+build/
+DerivedData/
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# ── Swift Package Manager local cache ─────────────────────────────────────────
+# Package.resolved (in xcshareddata/swiftpm/) IS committed — it's the SPM lockfile
+.build/
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── Project-specific ──────────────────────────────────────────────────────────
+generate_icon.py
+
+# ── Misc Xcode ────────────────────────────────────────────────────────────────
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+*.hmap

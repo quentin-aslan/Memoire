@@ -6,14 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		936192B12F939F0B00B123A5 /* SwiftFSRS in Frameworks */ = {isa = PBXBuildFile; productRef = 936192B02F939F0B00B123A5 /* SwiftFSRS */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		93A69E202F9364C500C71556 /* Mémoire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mémoire.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		93A69E202F9364C500C71556 /* Memoire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Memoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		93A69E222F9364C500C71556 /* Mémoire */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Mémoire";
+			path = Memoire;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				936192B12F939F0B00B123A5 /* SwiftFSRS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -40,7 +45,7 @@
 		93A69E212F9364C500C71556 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				93A69E202F9364C500C71556 /* Mémoire.app */,
+				93A69E202F9364C500C71556 /* Memoire.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +53,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		93A69E1F2F9364C500C71556 /* Mémoire */ = {
+		93A69E1F2F9364C500C71556 /* Memoire */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 93A69E2B2F9364C700C71556 /* Build configuration list for PBXNativeTarget "Mémoire" */;
+			buildConfigurationList = 93A69E2B2F9364C700C71556 /* Build configuration list for PBXNativeTarget "Memoire" */;
 			buildPhases = (
 				93A69E1C2F9364C500C71556 /* Sources */,
 				93A69E1D2F9364C500C71556 /* Frameworks */,
@@ -63,11 +68,12 @@
 			fileSystemSynchronizedGroups = (
 				93A69E222F9364C500C71556 /* Mémoire */,
 			);
-			name = "Mémoire";
+			name = Memoire;
 			packageProductDependencies = (
+				936192B02F939F0B00B123A5 /* SwiftFSRS */,
 			);
-			productName = "Mémoire";
-			productReference = 93A69E202F9364C500C71556 /* Mémoire.app */;
+			productName = Memoire;
+			productReference = 93A69E202F9364C500C71556 /* Memoire.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +91,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 93A69E1B2F9364C500C71556 /* Build configuration list for PBXProject "Mémoire" */;
+			buildConfigurationList = 93A69E1B2F9364C500C71556 /* Build configuration list for PBXProject "Memoire" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -94,12 +100,15 @@
 			);
 			mainGroup = 93A69E172F9364C500C71556;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				936192AF2F939F0B00B123A5 /* XCRemoteSwiftPackageReference "swift-fsrs" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 93A69E212F9364C500C71556 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				93A69E1F2F9364C500C71556 /* Mémoire */,
+				93A69E1F2F9364C500C71556 /* Memoire */,
 			);
 		};
 /* End PBXProject section */
@@ -177,7 +186,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -234,7 +243,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -251,8 +260,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 22F9GHPYS4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Memoire;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -263,7 +274,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.quentinaslan.Me-moire";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.quentinaslan.memoire";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -282,8 +293,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 22F9GHPYS4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Memoire;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -294,7 +307,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.quentinaslan.Me-moire";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.quentinaslan.memoire";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -309,7 +322,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		93A69E1B2F9364C500C71556 /* Build configuration list for PBXProject "Mémoire" */ = {
+		93A69E1B2F9364C500C71556 /* Build configuration list for PBXProject "Memoire" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				93A69E292F9364C700C71556 /* Debug */,
@@ -318,7 +331,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		93A69E2B2F9364C700C71556 /* Build configuration list for PBXNativeTarget "Mémoire" */ = {
+		93A69E2B2F9364C700C71556 /* Build configuration list for PBXNativeTarget "Memoire" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				93A69E2C2F9364C700C71556 /* Debug */,
@@ -328,6 +341,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		936192AF2F939F0B00B123A5 /* XCRemoteSwiftPackageReference "swift-fsrs" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/4rays/swift-fsrs";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		936192B02F939F0B00B123A5 /* SwiftFSRS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 936192AF2F939F0B00B123A5 /* XCRemoteSwiftPackageReference "swift-fsrs" */;
+			productName = SwiftFSRS;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 93A69E182F9364C500C71556 /* Project object */;
 }

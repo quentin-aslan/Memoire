@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mémoire — App Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,400..600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  @page { size: A3 landscape; margin: 1cm; }
+  @media print {
+    html, body { background: #0A0A0C !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+  html, body { margin: 0; padding: 0; background: #0A0A0C; color: #F5F5F7;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  button { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  .serif, [style*="New York"] { font-family: 'Source Serif 4', 'New York', Georgia, serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="screens-home.jsx"></script>
+<script type="text/babel" src="screens-review.jsx"></script>
+<script type="text/babel" src="screens-decks.jsx"></script>
+<script type="text/babel" src="screens-settings.jsx"></script>
+
+<script type="text/babel">
+const T = window.T;
+
+// Map 'New York' in the existing styles to Source Serif 4 (closest feel; New York isn't on web)
+const origSerif = T.serif;
+T.serif = `'Source Serif 4', ${origSerif}`;
+
+const TWEAKS_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "liveScreen": "home",
+  "accentHue": 42,
+  "showAllScreens": true
+}/*EDITMODE-END*/;
+
+// Screen definitions for the canvas
+const SCREEN_DEFS = [
+  { id: 'onboard-welcome', label: 'Onboarding · Accueil',     build: (p) => <OnboardingScreen step={0} {...p}/> },
+  { id: 'onboard-flip',    label: 'Onboarding · Le flip',     build: (p) => <OnboardingScreen step={1} {...p}/> },
+  { id: 'onboard-notif',   label: 'Onboarding · Rappel',      build: (p) => <OnboardingScreen step={2} {...p}/> },
+  { id: 'onboard-first',   label: 'Onboarding · Première révision', build: (p) => <OnboardingScreen step={3} {...p}/> },
+  { id: 'home',            label: 'Accueil · 18 cartes dues', build: (p) => <HomeAndTabs initialScreen="home" {...p}/> },
+  { id: 'home-empty',      label: 'Accueil · Aucun paquet',   build: (p) => <HomeScreen state="empty-decks"/> },
+  { id: 'home-done',       label: 'Accueil · Tout est à jour', build: (p) => <HomeScreen state="empty-due"/> },
+  { id: 'review-front',    label: 'Révision · Question',      build: (p) => <ReviewScreen current={12} total={30} flipped={false}/> },
+  { id: 'review-back',     label: 'Révision · Réponse + notation', build: (p) => <ReviewScreen current={12} total={30} flipped={true}/> },
+  { id: 'complete',        label: 'Session terminée',         build: (p) => <CompleteScreen/> },
+  { id: 'decks',           label: 'Paquets',                  build: (p) => <HomeAndTabs initialScreen="decks"/> },
+  { id: 'card-detail',     label: 'Détail carte · Planning FSRS', build: (p) => <CardDetailScreen/> },
+  { id: 'settings',        label: 'Réglages',                 build: (p) => <HomeAndTabs initialScreen="settings"/> },
+];
+
+// ─────────────────────────────────────────────────────────────
+// Interactive "main" phone wrapper with tab bar + flow state
+// ─────────────────────────────────────────────────────────────
+function HomeAndTabs({ initialScreen = 'home', controlled, setControlled }) {
+  const [local, setLocal] = React.useState(initialScreen);
+  const screen = controlled || local;
+  const setScreen = setControlled || setLocal;
+
+  const [reviewState, setReviewState] = React.useState({ flipped: false, current: 12, total: 30 });
+
+  let body;
+  if (screen === 'home')     body = <HomeScreen onStartReview={() => setScreen('review')}/>;
+  else if (screen === 'decks') body = <DecksScreen onOpenDeck={() => setScreen('card-detail')}/>;
+  else if (screen === 'settings') body = <SettingsScreen/>;
+  else if (screen === 'review') body = (
+    <ReviewScreen
+      current={reviewState.current}
+      total={reviewState.total}
+      flipped={reviewState.flipped}
+      onFlip={() => setReviewState(s => ({ ...s, flipped: !s.flipped }))}
+      onClose={() => { setReviewState({ flipped: false, current: 12, total: 30 }); setScreen('home'); }}
+      onRate={(r) => {
+        const next = reviewState.current + 1;
+        if (next > reviewState.total) { setScreen('complete'); }
+        else setReviewState({ current: next, flipped: false, total: reviewState.total });
+      }}
+    />
+  );
+  else if (screen === 'complete') body = <CompleteScreen onDone={() => { setReviewState({ flipped: false, current: 12, total: 30 }); setScreen('home'); }}/>;
+  else if (screen === 'card-detail') body = <CardDetailScreen onBack={() => setScreen('decks')}/>;
+  else body = <HomeScreen/>;
+
+  const showTabs = screen === 'home' || screen === 'decks' || screen === 'settings';
+  const tabId = screen === 'home' ? 'home' : screen === 'decks' ? 'decks' : screen === 'settings' ? 'settings' : 'review';
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      {body}
+      {showTabs && <TabBar active={tabId} onChange={(t) => {
+        if (t === 'review') setScreen('review');
+        else setScreen(t);
+      }}/>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Phone in iOS frame
+// ─────────────────────────────────────────────────────────────
+function Phone({ children, label, subLabel, width = 360, height = 780, scale = 1 }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      gap: 18, flexShrink: 0,
+    }}>
+      <div style={{
+        transform: `scale(${scale})`, transformOrigin: 'top center',
+        width, height,
+      }}>
+        <div style={{
+          width, height, borderRadius: 46, overflow: 'hidden',
+          position: 'relative', background: '#000',
+          boxShadow: '0 40px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 0 2.5px #18181A, inset 0 0 0 3.5px rgba(255,255,255,0.03)',
+        }}>
+          {/* Dynamic island */}
+          <div style={{
+            position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+            width: 112, height: 32, borderRadius: 22, background: '#000', zIndex: 100,
+          }}/>
+          {children}
+          {/* Home indicator */}
+          <div style={{
+            position: 'absolute', bottom: 7, left: '50%', transform: 'translateX(-50%)',
+            width: 124, height: 4.5, borderRadius: 100,
+            background: 'rgba(255,255,255,0.6)', zIndex: 110, pointerEvents: 'none',
+          }}/>
+        </div>
+      </div>
+      {label && (
+        <div style={{ textAlign: 'center', transform: `translateY(${(scale - 1) * height / 2}px)` }}>
+          <div style={{
+            fontFamily: T.sans, fontSize: 11, fontWeight: 600,
+            color: '#6E6E75', letterSpacing: 1.8, textTransform: 'uppercase',
+          }}>{label}</div>
+          {subLabel && (
+            <div style={{
+              fontFamily: T.serif, fontSize: 14, color: '#A8A8B0',
+              marginTop: 4, fontStyle: 'italic', letterSpacing: -0.1,
+            }}>{subLabel}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Full canvas app
+// ─────────────────────────────────────────────────────────────
+function App() {
+  const [tweaks, setTweaks] = React.useState(TWEAKS_DEFAULTS);
+  const [editMode, setEditMode] = React.useState(false);
+  const [liveScreen, setLiveScreen] = React.useState(tweaks.liveScreen || 'home');
+
+  // Edit mode protocol
+  React.useEffect(() => {
+    const handler = (e) => {
+      const msg = e.data;
+      if (!msg || typeof msg !== 'object') return;
+      if (msg.type === '__activate_edit_mode') setEditMode(true);
+      else if (msg.type === '__deactivate_edit_mode') setEditMode(false);
+    };
+    window.addEventListener('message', handler);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const update = (key, value) => {
+    setTweaks(t => {
+      const next = { ...t, [key]: value };
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: value } }, '*');
+      return next;
+    });
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh', width: '100%',
+      background: `
+        radial-gradient(1200px 600px at 15% 0%, rgba(212,175,55,0.06), transparent 60%),
+        radial-gradient(900px 500px at 85% 100%, rgba(212,175,55,0.04), transparent 60%),
+        #0A0A0C`,
+      padding: '56px 48px 120px', position: 'relative',
+    }}>
+      {/* Header */}
+      <div style={{ maxWidth: 1400, margin: '0 auto 48px' }} data-screen-label="00 Header">
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24,
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: `linear-gradient(135deg, ${T.goldLight}, ${T.gold}, ${T.goldDark})`,
+            display: 'grid', placeItems: 'center',
+            fontFamily: T.serif, fontSize: 26, fontWeight: 500, color: '#1A1405',
+            boxShadow: `0 10px 30px rgba(212,175,55,0.25)`,
+          }}>M</div>
+          <div>
+            <div style={{
+              fontFamily: T.sans, fontSize: 11, fontWeight: 600,
+              color: '#8E8E93', letterSpacing: 2.4, textTransform: 'uppercase',
+            }}>Proposition de design · iOS 17+</div>
+            <div style={{
+              fontFamily: T.serif, fontSize: 36, fontWeight: 500,
+              letterSpacing: -0.5, color: '#F5F5F7',
+            }}>Mémoire <span style={{ color: T.gold, fontStyle: 'italic', fontWeight: 400 }}>— calm luxury for the curious mind</span></div>
+          </div>
+        </div>
+
+        <div style={{
+          maxWidth: 780, fontFamily: T.serif, fontSize: 17,
+          color: '#B5B5BC', lineHeight: 1.6, letterSpacing: -0.1,
+        }}>
+          Répétition espacée (FSRS) pour adultes TDAH. Dark-only, or mat <code style={{ background: 'rgba(212,175,55,0.12)', color: T.gold, padding: '1px 7px', borderRadius: 4, fontFamily: T.mono, fontSize: 13 }}>#D4AF37</code>, typographie Source Serif 4 (proxy « New York ») + Inter (proxy SF Pro). 13 écrans ci-dessous. Le téléphone central est <em style={{ color: T.gold }}>interactif</em> — naviguez via la tab bar, appuyez pour flipper les cartes.
+        </div>
+      </div>
+
+      {/* Live interactive phone */}
+      <div style={{ maxWidth: 1400, margin: '0 auto 96px' }}>
+        <SectionHeader
+          kicker="01 · Prototype interactif"
+          title="L'expérience complète"
+          subtitle="Naviguez, flippez, notez. Tap ‹Réviser› pour démarrer une session de 30 cartes."
+        />
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+          <div data-screen-label="01 Live">
+            <Phone width={380} height={820}>
+              <HomeAndTabs controlled={liveScreen} setControlled={(s) => { setLiveScreen(s); update('liveScreen', s); }}/>
+            </Phone>
+          </div>
+        </div>
+      </div>
+
+      {/* Onboarding row */}
+      <div style={{ maxWidth: 1600, margin: '0 auto 96px' }}>
+        <SectionHeader
+          kicker="02 · Onboarding (4 écrans)"
+          title="Première rencontre"
+          subtitle="Friction zéro. Option « Passer » visible à tout moment. Rappel par défaut 18h — chronotype TDAH."
+        />
+        <PhoneRow screens={['onboard-welcome', 'onboard-flip', 'onboard-notif', 'onboard-first']}/>
+      </div>
+
+      {/* Home states */}
+      <div style={{ maxWidth: 1600, margin: '0 auto 96px' }}>
+        <SectionHeader
+          kicker="03 · Tableau de bord"
+          title="Accueil — trois informations, un geste"
+          subtitle="Anneau de progression, score de régularité glissant (pas de streak), CTA or pleine largeur."
+        />
+        <PhoneRow screens={['home', 'home-done', 'home-empty']}/>
+      </div>
+
+      {/* Review flow */}
+      <div style={{ maxWidth: 1600, margin: '0 auto 96px' }}>
+        <SectionHeader
+          kicker="04 · Session de révision"
+          title="Le cœur de l'app"
+          subtitle="Flip 3D sur l'axe Y, spring. Trois boutons — raté, moyen, facile. Jamais de rouge punitif, jamais de timer."
+        />
+        <PhoneRow screens={['review-front', 'review-back', 'complete']}/>
+      </div>
+
+      {/* Decks + card detail + settings */}
+      <div style={{ maxWidth: 1600, margin: '0 auto 96px' }}>
+        <SectionHeader
+          kicker="05 · Bibliothèque, transparence, réglages"
+          title="Le reste de l'app"
+          subtitle="Vue détail carte = transparence algorithmique. « La carte n'a pas disparu. Elle reviendra le 22 avril. »"
+        />
+        <PhoneRow screens={['decks', 'card-detail', 'settings']}/>
+      </div>
+
+      {/* Design system */}
+      <div style={{ maxWidth: 1400, margin: '0 auto 96px' }}>
+        <SectionHeader
+          kicker="06 · Design system"
+          title="Les fondations"
+        />
+        <DesignSystem/>
+      </div>
+
+      {/* Principles */}
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <SectionHeader
+          kicker="07 · Principes"
+          title="Pourquoi ces choix"
+        />
+        <PrincipleGrid/>
+      </div>
+
+      {editMode && <TweaksPanel tweaks={tweaks} update={update} onClose={() => setEditMode(false)}/>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Section header
+// ─────────────────────────────────────────────────────────────
+function SectionHeader({ kicker, title, subtitle }) {
+  return (
+    <div>
+      <div style={{
+        fontFamily: T.sans, fontSize: 11, fontWeight: 600,
+        color: T.gold, letterSpacing: 3, textTransform: 'uppercase',
+      }}>{kicker}</div>
+      <div style={{
+        fontFamily: T.serif, fontSize: 30, fontWeight: 500, color: '#F5F5F7',
+        marginTop: 10, letterSpacing: -0.4, lineHeight: 1.15,
+      }}>{title}</div>
+      {subtitle && (
+        <div style={{
+          fontFamily: T.serif, fontSize: 16, color: '#8E8E93',
+          marginTop: 10, lineHeight: 1.55, maxWidth: 680, letterSpacing: -0.1,
+        }}>{subtitle}</div>
+      )}
+    </div>
+  );
+}
+
+// Row of phones with labels
+function PhoneRow({ screens }) {
+  return (
+    <div style={{
+      display: 'flex', gap: 56, justifyContent: 'center',
+      marginTop: 48, flexWrap: 'wrap',
+    }}>
+      {screens.map(id => {
+        const def = SCREEN_DEFS.find(s => s.id === id);
+        if (!def) return null;
+        const [major, minor] = def.label.split(' · ');
+        return (
+          <div key={id} data-screen-label={def.label}>
+            <Phone width={300} height={650} scale={1} label={major} subLabel={minor}>
+              <div style={{ width: 300, height: 650, transform: 'scale(0.79)', transformOrigin: 'top left', width: 380, height: 823 }}>
+                {def.build({})}
+              </div>
+            </Phone>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Design system
+// ─────────────────────────────────────────────────────────────
+function DesignSystem() {
+  const colors = [
+    { name: 'background.primary',  hex: '#1C1C1E', role: 'Canvas' },
+    { name: 'background.card',     hex: '#2C2C2E', role: 'Cartes' },
+    { name: 'background.elevated', hex: '#3A3A3C', role: 'Modals' },
+    { name: 'accent.gold',         hex: '#D4AF37', role: 'CTA · régularité' },
+    { name: 'text.reading',        hex: '#F2EDE4', role: 'Contenu carte' },
+    { name: 'state.again',         hex: '#F7A58C', role: 'Raté (pêche, jamais rouge)' },
+    { name: 'state.easy',          hex: '#4ADE80', role: 'Facile' },
+  ];
+
+  return (
+    <div style={{ marginTop: 36, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      {/* Colors */}
+      <div style={{
+        padding: 28, background: '#111114', borderRadius: 20,
+        border: '0.5px solid rgba(255,255,255,0.05)',
+      }}>
+        <div style={{
+          fontFamily: T.sans, fontSize: 11, fontWeight: 600,
+          color: T.gold, letterSpacing: 2, textTransform: 'uppercase',
+        }}>Palette — dark first</div>
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {colors.map(c => (
+            <div key={c.hex} style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '8px 10px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.02)',
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: c.hex,
+                border: '0.5px solid rgba(255,255,255,0.06)',
+              }}/>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: T.mono, fontSize: 12, color: '#F5F5F7' }}>{c.hex}</div>
+                <div style={{ fontFamily: T.sans, fontSize: 11, color: '#8E8E93', marginTop: 2 }}>{c.name}</div>
+              </div>
+              <div style={{ fontFamily: T.sans, fontSize: 12, color: '#A8A8B0' }}>{c.role}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Typography */}
+      <div style={{
+        padding: 28, background: '#111114', borderRadius: 20,
+        border: '0.5px solid rgba(255,255,255,0.05)',
+      }}>
+        <div style={{
+          fontFamily: T.sans, fontSize: 11, fontWeight: 600,
+          color: T.gold, letterSpacing: 2, textTransform: 'uppercase',
+        }}>Typographie</div>
+        <div style={{ marginTop: 20 }}>
+          <TypeSpec font={T.serif} size={34} weight={500} label="card.question" sample="Qu'est-ce que FSRS ?"/>
+          <TypeSpec font={T.serif} size={20} weight={400} label="card.answer" sample="Un modèle de mémoire probabiliste."/>
+          <TypeSpec font={T.sans} size={34} weight={700} label="ui.largeTitle" sample="Mémoire"/>
+          <TypeSpec font={T.sans} size={17} weight={400} label="ui.body" sample="Score de régularité · 21/30"/>
+          <TypeSpec font={T.sans} size={15} weight={650} label="ui.ratingBtn" sample="Raté · Moyen · Facile"/>
+        </div>
+      </div>
+
+      {/* Ring + buttons */}
+      <div style={{
+        padding: 28, background: '#111114', borderRadius: 20,
+        border: '0.5px solid rgba(255,255,255,0.05)',
+        gridColumn: 'span 2',
+        display: 'flex', gap: 40, alignItems: 'center',
+      }}>
+        <div>
+          <div style={{
+            fontFamily: T.sans, fontSize: 11, fontWeight: 600,
+            color: T.gold, letterSpacing: 2, textTransform: 'uppercase',
+          }}>Composants clés</div>
+          <div style={{ fontFamily: T.serif, fontSize: 22, color: '#F5F5F7', marginTop: 8, maxWidth: 320 }}>
+            Anneau, boutons de notation, puce de chip.
+          </div>
+          <div style={{
+            fontFamily: T.sans, fontSize: 13, color: '#8E8E93',
+            marginTop: 10, lineHeight: 1.55, maxWidth: 380,
+          }}>Toutes les couleurs + icônes sont associées (daltonisme). Cible tap ≥ 52pt. Aucun élément clignotant. Respect de prefers-reduced-motion.</div>
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          <Ring size={140} stroke={12} progress={0.7}>
+            <div style={{ fontFamily: T.serif, fontSize: 42, color: T.textPrimary, letterSpacing: -1 }}>18</div>
+            <div style={{ fontFamily: T.sans, fontSize: 9, color: T.textSecondary, letterSpacing: 1.2, marginTop: 2 }}>CARTES</div>
+          </Ring>
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <MiniBtn tone="again" label="Raté" glyph="✕"/>
+            <MiniBtn tone="good"  label="Moyen" glyph="○" primary/>
+            <MiniBtn tone="easy"  label="Facile" glyph="✓"/>
+          </div>
+          <GoldButton>Commencer la révision</GoldButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TypeSpec({ font, size, weight, label, sample }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'baseline', gap: 20,
+      padding: '10px 0', borderBottom: '0.5px solid rgba(255,255,255,0.04)',
+    }}>
+      <div style={{
+        width: 110, fontFamily: T.mono, fontSize: 10, color: '#8E8E93',
+        flexShrink: 0,
+      }}>{label}</div>
+      <div style={{ flex: 1, fontFamily: font, fontSize: size, fontWeight: weight, color: '#F2EDE4', lineHeight: 1.2, letterSpacing: -0.2 }}>
+        {sample}
+      </div>
+      <div style={{
+        fontFamily: T.mono, fontSize: 10, color: '#636369', flexShrink: 0,
+      }}>{size}/{weight}</div>
+    </div>
+  );
+}
+
+function MiniBtn({ tone, label, glyph, primary }) {
+  const toneMap = {
+    again: { color: T.again, bg: 'rgba(247,165,140,0.09)', border: 'rgba(247,165,140,0.26)' },
+    good:  { color: T.gold,  bg: 'rgba(212,175,55,0.12)',  border: 'rgba(212,175,55,0.30)' },
+    easy:  { color: T.easy,  bg: 'rgba(74,222,128,0.10)',  border: 'rgba(74,222,128,0.28)' },
+  }[tone];
+  return (
+    <div style={{
+      flex: 1, height: 56, borderRadius: 14,
+      background: primary ? `linear-gradient(180deg, rgba(212,175,55,0.22), rgba(212,175,55,0.08))` : toneMap.bg,
+      border: `1px solid ${toneMap.border}`,
+      color: toneMap.color, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: 2,
+      fontFamily: T.sans,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontSize: 11 }}>{glyph}</span>
+        <span style={{ fontSize: 13, fontWeight: 650 }}>{label}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Principles grid
+// ─────────────────────────────────────────────────────────────
+function PrincipleGrid() {
+  const items = [
+    { n: '01', t: 'L\'app n\'est pas un juge.', b: '« 21 jours sur 30. » Jamais « 9 manqués. » Le score glisse, il ne se réinitialise pas.' },
+    { n: '02', t: 'Un écran = une action.', b: 'Loi de Hick. Trois boutons de notation, pas quatre. Un CTA par écran.' },
+    { n: '03', t: 'Transparence algorithmique.', b: 'La vue détail carte montre le planning FSRS. « La carte reviendra le 22 avril. »' },
+    { n: '04', t: 'Calme, pas friction.', b: 'Palette or mat sur fond sombre. Typographie lettrée. Aucun élément clignotant.' },
+  ];
+  return (
+    <div style={{
+      marginTop: 40,
+      display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16,
+    }}>
+      {items.map(i => (
+        <div key={i.n} style={{
+          padding: '28px 28px', borderRadius: 18,
+          background: '#111114',
+          border: '0.5px solid rgba(255,255,255,0.05)',
+        }}>
+          <div style={{
+            fontFamily: T.mono, fontSize: 11, color: T.gold, letterSpacing: 1.6,
+          }}>{i.n}</div>
+          <div style={{
+            fontFamily: T.serif, fontSize: 22, color: '#F2EDE4',
+            marginTop: 10, letterSpacing: -0.3, lineHeight: 1.2,
+          }}>{i.t}</div>
+          <div style={{
+            fontFamily: T.serif, fontSize: 15, color: '#8E8E93',
+            marginTop: 10, lineHeight: 1.55, letterSpacing: -0.1,
+          }}>{i.b}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Tweaks panel
+// ─────────────────────────────────────────────────────────────
+function TweaksPanel({ tweaks, update, onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', bottom: 24, right: 24, width: 300,
+      background: 'rgba(20,20,22,0.92)', backdropFilter: 'blur(18px)',
+      WebkitBackdropFilter: 'blur(18px)',
+      border: `0.5px solid rgba(212,175,55,0.2)`,
+      borderRadius: 18, padding: 18, zIndex: 9999,
+      boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+      fontFamily: T.sans, color: '#F5F5F7',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.gold, letterSpacing: 2, textTransform: 'uppercase' }}>Tweaks</div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8E8E93', cursor: 'pointer' }}>✕</button>
+      </div>
+
+      <label style={{ display: 'block', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: '#8E8E93', marginBottom: 6, letterSpacing: 0.4, textTransform: 'uppercase' }}>Écran actif (téléphone central)</div>
+        <select value={tweaks.liveScreen} onChange={(e) => update('liveScreen', e.target.value)}
+          style={{
+            width: '100%', padding: '10px 12px', borderRadius: 10,
+            background: '#222225', color: '#F5F5F7',
+            border: '0.5px solid rgba(255,255,255,0.1)', fontFamily: T.sans, fontSize: 13,
+          }}>
+          <option value="home">Accueil</option>
+          <option value="decks">Paquets</option>
+          <option value="settings">Réglages</option>
+          <option value="review">Révision</option>
+          <option value="complete">Session terminée</option>
+          <option value="card-detail">Détail carte</option>
+        </select>
+      </label>
+
+      <div style={{ fontSize: 11, color: '#8E8E93', lineHeight: 1.5, marginTop: 14 }}>
+        Prototype : toutes les captures sont interactives. Flippez les cartes, changez d'onglet, lancez une session.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+</body>
+</html>
