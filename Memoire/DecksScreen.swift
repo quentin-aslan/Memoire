@@ -18,7 +18,7 @@ struct DecksScreen: View {
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "DecksScreen")
 
     private var visibleDecks: [Deck] {
-        allDecks.filter { !$0.isDeleted }
+        allDecks.filter { !$0.isSoftDeleted }
     }
 
     var body: some View {
@@ -32,7 +32,7 @@ struct DecksScreen: View {
             }
             .background(Color.bgPrimary)
             .navigationTitle("Paquets")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -64,7 +64,7 @@ struct DecksScreen: View {
                     },
                     onCancel: { deleteRequest = nil }
                 )
-                .presentationDetents([.medium])
+                .presentationDetents([.height(340)])
                 .presentationDragIndicator(.hidden)
                 .interactiveDismissDisabled(true)
             }
@@ -98,11 +98,11 @@ struct DecksScreen: View {
                     .listRowBackground(Color.bgCard)
                     .listRowSeparator(.hidden)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) {
+                        Button {
                             deleteRequest = DeleteRequest(
                                 target: .deck(
                                     name: deck.name,
-                                    cardCount: deck.cards.filter { !$0.isDeleted }.count
+                                    cardCount: deck.cards.filter { !$0.isSoftDeleted }.count
                                 ),
                                 confirm: { softDelete(deck) }
                             )
@@ -179,8 +179,8 @@ struct DecksScreen: View {
     }
 
     private func deckRowContent(_ deck: Deck) -> some View {
-        let dueCount = deck.cards.filter { !$0.isDeleted && ($0.nextReviewDate ?? .distantFuture) <= .now }.count
-        let totalCount = deck.cards.filter { !$0.isDeleted }.count
+        let dueCount = deck.cards.filter { !$0.isSoftDeleted && ($0.nextReviewDate ?? .distantFuture) <= .now }.count
+        let totalCount = deck.cards.filter { !$0.isSoftDeleted }.count
         let deckColor = Color(hex: deck.color ?? Color.goldHex)
 
         return HStack(spacing: 0) {
@@ -248,17 +248,17 @@ struct DecksScreen: View {
     }
 
     // @Relationship(deleteRule: .cascade) fires only on context.delete(); soft-delete
-    // via the isDeleted flag must cascade manually so children stop surfacing in the UI.
+    // via the isSoftDeleted flag must cascade manually so children stop surfacing in the UI.
     private func softDelete(_ deck: Deck) {
         let now = Date.now
         let pendingDelete = SyncStatus.pendingDelete.rawValue
-        for card in deck.cards where !card.isDeleted {
-            card.isDeleted = true
+        for card in deck.cards where !card.isSoftDeleted {
+            card.isSoftDeleted = true
             card.deletedAt = now
             card.syncVersion += 1
             card.syncStatus = pendingDelete
         }
-        deck.isDeleted = true
+        deck.isSoftDeleted = true
         deck.deletedAt = now
         deck.syncVersion += 1
         deck.syncStatus = pendingDelete

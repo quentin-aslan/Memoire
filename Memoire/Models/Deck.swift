@@ -12,7 +12,7 @@ final class Deck {
     @Relationship(deleteRule: .cascade, inverse: \Card.deck)
     var cards: [Card] = []
 
-    var isDeleted: Bool
+    var isSoftDeleted: Bool
     var deletedAt: Date?
     var syncVersion: Int
     var syncStatus: Int
@@ -23,7 +23,7 @@ final class Deck {
         color: String? = nil,
         position: Int,
         createdAt: Date = .now,
-        isDeleted: Bool = false,
+        isSoftDeleted: Bool = false,
         deletedAt: Date? = nil,
         syncVersion: Int = 0,
         syncStatus: Int = 0
@@ -33,7 +33,7 @@ final class Deck {
         self.color = color
         self.position = position
         self.createdAt = createdAt
-        self.isDeleted = isDeleted
+        self.isSoftDeleted = isSoftDeleted
         self.deletedAt = deletedAt
         self.syncVersion = syncVersion
         self.syncStatus = syncStatus

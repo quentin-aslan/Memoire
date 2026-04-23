@@ -10,7 +10,7 @@ enum DailyQueue {
         now: Date = .now,
         calendar: Calendar = .current
     ) -> [Card] {
-        let active = allCards.filter { !$0.isDeleted }
+        let active = allCards.filter { !$0.isSoftDeleted }
 
         let dueNonNew = active.filter { card in
             guard card.fsrsReps > 0, let next = card.nextReviewDate else { return false }

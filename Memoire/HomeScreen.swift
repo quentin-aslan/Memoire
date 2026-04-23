@@ -24,7 +24,7 @@ struct HomeScreen: View {
     private var cardsDue: Int { dueCards.count }
 
     private var totalCards: Int {
-        allCards.filter { !$0.isDeleted }.count
+        allCards.filter { !$0.isSoftDeleted }.count
     }
 
     private var completionProgress: Double {

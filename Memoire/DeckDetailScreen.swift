@@ -21,7 +21,7 @@ struct DeckDetailScreen: View {
 
     private var sortedCards: [Card] {
         deck.cards
-            .filter { !$0.isDeleted }
+            .filter { !$0.isSoftDeleted }
             .sorted { $0.createdAt < $1.createdAt }
     }
 
@@ -57,7 +57,7 @@ struct DeckDetailScreen: View {
                 },
                 onCancel: { deleteRequest = nil }
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.height(340)])
             .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled(true)
         }
@@ -83,7 +83,7 @@ struct DeckDetailScreen: View {
                     .listRowBackground(Color.bgCard)
                     .listRowSeparator(.hidden)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) {
+                        Button {
                             deleteRequest = DeleteRequest(
                                 target: .card(name: card.front),
                                 confirm: { softDelete(card) }
@@ -149,7 +149,7 @@ struct DeckDetailScreen: View {
                 .font(.serif(17, weight: .regular))
                 .foregroundStyle(Color.textReading)
                 .multilineTextAlignment(.leading)
-                .lineLimit(2, reservesSpace: true)
+                .lineLimit(2)
 
             HStack(spacing: 6) {
                 Circle()
@@ -178,7 +178,7 @@ struct DeckDetailScreen: View {
     }
 
     private func softDelete(_ card: Card) {
-        card.isDeleted = true
+        card.isSoftDeleted = true
         card.deletedAt = .now
         card.syncVersion += 1
         card.syncStatus = SyncStatus.pendingDelete.rawValue
