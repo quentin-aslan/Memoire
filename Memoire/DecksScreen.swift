@@ -10,7 +10,6 @@ struct DecksScreen: View {
 
     @State private var editingDeck: DeckDraft?
     @State private var deckToDelete: Deck?
-    @State private var showDeleteDialog: Bool = false
     @State private var deckSession: ReviewSession?
     @State private var navPath = NavigationPath()
     @State private var pendingNewDeck: Deck?
@@ -56,19 +55,20 @@ struct DecksScreen: View {
             .fullScreenCover(item: $deckSession) { session in
                 ReviewScreen(session: session)
             }
-            .confirmationDialog(
-                "Supprimer ce paquet ?",
-                isPresented: $showDeleteDialog,
-                titleVisibility: .visible,
-                presenting: deckToDelete
-            ) { deck in
-                Button("Supprimer", role: .destructive) {
-                    softDelete(deck)
-                    deckToDelete = nil
-                }
-                Button("Annuler", role: .cancel) { deckToDelete = nil }
-            } message: { deck in
-                Text("« \(deck.name) » et toutes ses cartes seront supprimés.")
+            .sheet(item: $deckToDelete) { deck in
+                DeleteConfirmationSheet(
+                    itemName: deck.name,
+                    cardCount: deck.cards.filter { !$0.isDeleted }.count,
+                    title: "Supprimer ce paquet ?",
+                    onConfirm: {
+                        softDelete(deck)
+                        deckToDelete = nil
+                    },
+                    onCancel: { deckToDelete = nil }
+                )
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+                .interactiveDismissDisabled(true)
             }
             .navigationDestination(for: Deck.self) { deck in
                 DeckDetailScreen(
@@ -97,16 +97,15 @@ struct DecksScreen: View {
                     NavigationLink(value: deck) {
                         deckRowContent(deck)
                     }
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(Color.bgCard)
                     .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             deckToDelete = deck
-                            showDeleteDialog = true
                         } label: {
                             Label("Supprimer", systemImage: "trash")
                         }
+                        .tint(.red)
 
                         Button {
                             editingDeck = DeckDraft.edit(deck)
@@ -227,8 +226,6 @@ struct DecksScreen: View {
             .padding(.leading, 14)
             .padding(.trailing, 12)
         }
-        .background(Color.bgCard)
-        .clipShape(.rect(cornerRadius: 12))
     }
 
     private func moveDecks(from source: IndexSet, to destination: Int) {
@@ -246,15 +243,24 @@ struct DecksScreen: View {
         }
     }
 
+    // @Relationship(deleteRule: .cascade) fires only on context.delete(); soft-delete
+    // via the isDeleted flag must cascade manually so children stop surfacing in the UI.
     private func softDelete(_ deck: Deck) {
+        let now = Date.now
+        for card in deck.cards where !card.isDeleted {
+            card.isDeleted = true
+            card.deletedAt = now
+            card.syncVersion += 1
+            card.syncStatus = 3
+        }
         deck.isDeleted = true
-        deck.deletedAt = .now
+        deck.deletedAt = now
         deck.syncVersion += 1
         deck.syncStatus = 3
         do {
             try context.save()
         } catch {
-            Self.logger.error("Failed to soft-delete deck: \(error.localizedDescription)")
+            Self.logger.error("Failed to soft-delete deck cascade: \(error.localizedDescription)")
         }
     }
 }

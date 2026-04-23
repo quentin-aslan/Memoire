@@ -16,7 +16,6 @@ struct DeckDetailScreen: View {
         self.onAutoOpenConsumed = onAutoOpenConsumed
     }
     @State private var cardToDelete: Card?
-    @State private var showDeleteDialog: Bool = false
 
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "DeckDetailScreen")
 
@@ -49,16 +48,20 @@ struct DeckDetailScreen: View {
         .sheet(item: $editingCard) { draft in
             CardEditorSheet(initialDraft: draft)
         }
-        .confirmationDialog(
-            "Supprimer cette carte ?",
-            isPresented: $showDeleteDialog,
-            titleVisibility: .visible
-        ) {
-            Button("Supprimer", role: .destructive) {
-                if let card = cardToDelete { softDelete(card) }
-                cardToDelete = nil
-            }
-            Button("Annuler", role: .cancel) { cardToDelete = nil }
+        .sheet(item: $cardToDelete) { card in
+            DeleteConfirmationSheet(
+                itemName: card.front,
+                cardCount: nil,
+                title: "Supprimer cette carte ?",
+                onConfirm: {
+                    softDelete(card)
+                    cardToDelete = nil
+                },
+                onCancel: { cardToDelete = nil }
+            )
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.hidden)
+            .interactiveDismissDisabled(true)
         }
         .task {
             guard autoOpenCardEditor else { return }
@@ -84,10 +87,11 @@ struct DeckDetailScreen: View {
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             cardToDelete = card
-                            showDeleteDialog = true
                         } label: {
                             Label("Supprimer", systemImage: "trash")
                         }
+                        .tint(.red)
+
                         Button {
                             editingCard = CardDraft.edit(card)
                         } label: {
