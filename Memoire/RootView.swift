@@ -26,13 +26,7 @@ struct RootView: View {
         TabView(selection: $selectedTab) {
             Tab("Accueil", systemImage: "square.grid.2x2", value: RootTab.home) {
                 NavigationStack {
-                    HomeScreen(selectedTab: $selectedTab)
-                }
-            }
-
-            Tab("Réviser", systemImage: "play.fill", value: RootTab.review) {
-                NavigationStack {
-                    ReviewTabScreen()
+                    HomeScreen()
                 }
             }
 
@@ -53,7 +47,7 @@ struct RootView: View {
 }
 
 enum RootTab: Hashable {
-    case home, review, decks, settings
+    case home, decks, settings
 }
 
 #Preview {
