@@ -1,35 +1,47 @@
 import SwiftUI
 
+enum DeleteTarget {
+    case card(name: String)
+    case deck(name: String, cardCount: Int)
+
+    var title: String {
+        switch self {
+        case .card: "Supprimer cette carte ?"
+        case .deck: "Supprimer ce paquet ?"
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .card(let name):
+            "« \(name) » sera supprimée de façon irréversible."
+        case .deck(let name, 0):
+            "« \(name) » sera supprimé de façon irréversible."
+        case .deck(let name, 1):
+            "« \(name) » et sa carte seront supprimés de façon irréversible."
+        case .deck(let name, let count):
+            "« \(name) » et ses \(count) cartes seront supprimés de façon irréversible."
+        }
+    }
+
+    var confirmAccessibilityLabel: String {
+        switch self {
+        case .card(let name):
+            "Supprimer définitivement \(name)"
+        case .deck(let name, 0):
+            "Supprimer définitivement \(name)"
+        case .deck(let name, 1):
+            "Supprimer définitivement \(name) et sa carte"
+        case .deck(let name, let count):
+            "Supprimer définitivement \(name) et ses \(count) cartes"
+        }
+    }
+}
+
 struct DeleteConfirmationSheet: View {
-    let itemName: String
-    let cardCount: Int?
-    let title: String
+    let target: DeleteTarget
     let onConfirm: () -> Void
     let onCancel: () -> Void
-
-    private var messageText: String {
-        guard let count = cardCount else {
-            return "« \(itemName) » sera supprimée de façon irréversible."
-        }
-        switch count {
-        case 0:
-            return "« \(itemName) » sera supprimé de façon irréversible."
-        case 1:
-            return "« \(itemName) » et sa carte seront supprimés de façon irréversible."
-        default:
-            return "« \(itemName) » et ses \(count) cartes seront supprimés de façon irréversible."
-        }
-    }
-
-    private var confirmAccessibilityLabel: String {
-        guard let count = cardCount, count > 0 else {
-            return "Supprimer définitivement \(itemName)"
-        }
-        if count == 1 {
-            return "Supprimer définitivement \(itemName) et sa carte"
-        }
-        return "Supprimer définitivement \(itemName) et ses \(count) cartes"
-    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -38,12 +50,12 @@ struct DeleteConfirmationSheet: View {
                 .foregroundStyle(Color.red)
                 .padding(.top, 8)
 
-            Text(title)
+            Text(target.title)
                 .font(.serif(22, weight: .medium))
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.center)
 
-            Text(messageText)
+            Text(target.message)
                 .font(.serif(17))
                 .foregroundStyle(Color.textReading)
                 .multilineTextAlignment(.center)
@@ -72,7 +84,7 @@ struct DeleteConfirmationSheet: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(.isDestructive)
-                .accessibilityLabel(confirmAccessibilityLabel)
+                .accessibilityLabel(target.confirmAccessibilityLabel)
                 .accessibilityHint("Action irréversible")
             }
         }

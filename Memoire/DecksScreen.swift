@@ -57,9 +57,7 @@ struct DecksScreen: View {
             }
             .sheet(item: $deckToDelete) { deck in
                 DeleteConfirmationSheet(
-                    itemName: deck.name,
-                    cardCount: deck.cards.filter { !$0.isDeleted }.count,
-                    title: "Supprimer ce paquet ?",
+                    target: .deck(name: deck.name, cardCount: deck.cards.filter { !$0.isDeleted }.count),
                     onConfirm: {
                         softDelete(deck)
                         deckToDelete = nil
@@ -234,7 +232,7 @@ struct DecksScreen: View {
         for (index, deck) in reordered.enumerated() where deck.position != index {
             deck.position = index
             deck.syncVersion += 1
-            deck.syncStatus = 2
+            deck.syncStatus = SyncStatus.pendingUpdate.rawValue
         }
         do {
             try context.save()
@@ -247,16 +245,17 @@ struct DecksScreen: View {
     // via the isDeleted flag must cascade manually so children stop surfacing in the UI.
     private func softDelete(_ deck: Deck) {
         let now = Date.now
+        let pendingDelete = SyncStatus.pendingDelete.rawValue
         for card in deck.cards where !card.isDeleted {
             card.isDeleted = true
             card.deletedAt = now
             card.syncVersion += 1
-            card.syncStatus = 3
+            card.syncStatus = pendingDelete
         }
         deck.isDeleted = true
         deck.deletedAt = now
         deck.syncVersion += 1
-        deck.syncStatus = 3
+        deck.syncStatus = pendingDelete
         do {
             try context.save()
         } catch {

@@ -50,9 +50,7 @@ struct DeckDetailScreen: View {
         }
         .sheet(item: $cardToDelete) { card in
             DeleteConfirmationSheet(
-                itemName: card.front,
-                cardCount: nil,
-                title: "Supprimer cette carte ?",
+                target: .card(name: card.front),
                 onConfirm: {
                     softDelete(card)
                     cardToDelete = nil
@@ -180,7 +178,7 @@ struct DeckDetailScreen: View {
         card.isDeleted = true
         card.deletedAt = .now
         card.syncVersion += 1
-        card.syncStatus = 3
+        card.syncStatus = SyncStatus.pendingDelete.rawValue
         do {
             try context.save()
         } catch {

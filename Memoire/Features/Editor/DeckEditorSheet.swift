@@ -197,11 +197,11 @@ struct DeckEditorSheet: View {
                 deck.name = draft.trimmedName
                 deck.color = draft.color
                 deck.syncVersion += 1
-                deck.syncStatus = 2
+                deck.syncStatus = SyncStatus.pendingUpdate.rawValue
             } else {
                 let maxDescriptor = FetchDescriptor<Deck>(sortBy: [SortDescriptor(\.position, order: .reverse)])
                 let maxPosition = try context.fetch(maxDescriptor).first?.position ?? -1
-                let deck = Deck(name: draft.trimmedName, color: draft.color, position: maxPosition + 1, syncStatus: 1)
+                let deck = Deck(name: draft.trimmedName, color: draft.color, position: maxPosition + 1, syncStatus: SyncStatus.pendingCreate.rawValue)
                 context.insert(deck)
                 try context.save()
                 onCreated?(deck)
