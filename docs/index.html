@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mémoire — Répétition espacée pour adultes TDAH | iOS</title>
+  <meta name="description" content="App iOS de répétition espacée (FSRS v5) conçue pour les adultes TDAH. Micro-sessions calmes, algorithme transparent, aucun streak punitif.">
+  <meta name="keywords" content="répétition espacée, TDAH, ADHD, flashcards, FSRS, mémorisation, iOS, spaced repetition">
+  <link rel="canonical" href="https://quentin-aslan.github.io/Memoire/">
+
+  <meta property="og:title" content="Mémoire — Répétition espacée pour cerveaux TDAH">
+  <meta property="og:description" content="FSRS v5, micro-sessions, design calme. Apprenez ce qui compte, sans vous épuiser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://quentin-aslan.github.io/Memoire/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mémoire — App de révision pour adultes TDAH">
+  <meta name="twitter:description" content="FSRS v5, micro-sessions, design calme. Apprenez ce qui compte, sans vous épuiser.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Mémoire",
+    "operatingSystem": "iOS",
+    "applicationCategory": "EducationApplication",
+    "description": "App iOS de répétition espacée FSRS conçue pour les adultes TDAH",
+    "author": { "@type": "Person", "name": "Quentin Aslan", "email": "contact@quentinaslan.com" },
+    "url": "https://quentin-aslan.github.io/Memoire/"
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,400..600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Reset & base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    img { display: block; max-width: 100%; }
+    ::selection { background: var(--gold-tint); color: var(--gold-l); }
+
+    /* ─── Design tokens ─── */
+    :root {
+      --bg:        #0A0A0C;
+      --bg-2:      #111114;
+      --bg-card:   #18181B;
+      --bg-raised: #1E1E22;
+      --fg:        #F5F5F7;
+      --fg-read:   #F2EDE4;
+      --fg-2:      #A8A8B0;
+      --fg-3:      #6E6E75;
+      --hair:      rgba(255,255,255,0.06);
+      --hair-s:    rgba(255,255,255,0.12);
+      --gold:      #D4AF37;
+      --gold-l:    #E5C564;
+      --gold-d:    #B8942E;
+      --gold-tint: rgba(212,175,55,0.10);
+      --gold-glow: rgba(212,175,55,0.20);
+      --serif-display: 'DM Serif Display', Georgia, serif;
+      --serif: 'Source Serif 4', Georgia, serif;
+      --sans:  'Inter', -apple-system, system-ui, sans-serif;
+      --max-w: 1100px;
+      --radius: 16px;
+    }
+
+    /* ─── Typography helpers ─── */
+    .serif    { font-family: var(--serif); }
+    .display  { font-family: var(--serif-display); }
+    .kicker {
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .gold { color: var(--gold); }
+
+    /* ─── Scroll fade-in ─── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── Layout wrapper ─── */
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* ═══════════════════════════════════════════
+       NAV
+    ═══════════════════════════════════════════ */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,12,0.76);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border-bottom: 0.5px solid var(--hair);
+    }
+    nav {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      flex-shrink: 0;
+    }
+    .nav-logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(145deg, var(--gold-l), var(--gold), var(--gold-d));
+      display: grid;
+      place-items: center;
+      font-family: var(--serif-display);
+      font-size: 20px;
+      color: #1A1405;
+      box-shadow: 0 4px 16px var(--gold-glow);
+      flex-shrink: 0;
+    }
+    .nav-logo-name {
+      font-family: var(--serif-display);
+      font-size: 19px;
+      color: var(--fg-read);
+      letter-spacing: -0.2px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+      font-size: 14px;
+      color: var(--fg-2);
+    }
+    .nav-links a:hover { color: var(--fg); transition: color 0.2s; }
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 9px;
+      border: 0.5px solid var(--hair-s);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--fg-3);
+      flex-shrink: 0;
+      cursor: default;
+    }
+    .nav-cta svg { opacity: 0.5; }
+    .nav-pill {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: var(--gold-tint);
+      padding: 2px 7px;
+      border-radius: 100px;
+    }
+
+    /* ═══════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 110px 0 80px;
+    }
+    .hero-glow {
+      position: absolute;
+      top: -180px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 700px;
+      background: radial-gradient(ellipse at center, rgba(212,175,55,0.09), transparent 65%);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+    .hero-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 72px;
+      align-items: center;
+    }
+    .hero-copy { position: relative; z-index: 2; }
+    .hero-kicker { margin-bottom: 22px; }
+    h1 {
+      font-family: var(--serif-display);
+      font-size: clamp(44px, 5.5vw, 72px);
+      font-weight: 400;
+      line-height: 1.03;
+      letter-spacing: -1px;
+      color: var(--fg-read);
+      margin-bottom: 26px;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    .hero-sub {
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--fg-2);
+      max-width: 480px;
+      margin-bottom: 40px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 52px;
+      padding: 0 26px;
+      border-radius: 13px;
+      background: linear-gradient(180deg, var(--gold-l) 0%, var(--gold) 55%, var(--gold-d) 100%);
+      color: #1A1405;
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: 0.1px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 -1px 0 rgba(0,0,0,0.2) inset, 0 8px 28px var(--gold-glow);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 52px;
+      padding: 0 22px;
+      border-radius: 13px;
+      border: 0.5px solid var(--hair-s);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--fg-2);
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--fg); border-color: rgba(255,255,255,0.2); }
+    .trust-bar {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--fg-3);
+      align-items: center;
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .trust-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold);
+      flex-shrink: 0;
+    }
+
+    /* ─── Hero visual ─── */
+    .hero-visual {
+      position: relative;
+      height: 500px;
+      display: grid;
+      place-items: center;
+    }
+    /* Back ring card */
+    .hv-ring-card {
+      position: absolute;
+      width: 320px;
+      height: 400px;
+      top: 20px;
+      left: -50px;
+      transform: rotate(-6deg);
+      opacity: 0.5;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #1E1E22, #161618);
+      border: 0.5px solid var(--hair);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+    }
+    /* Back stat card */
+    .hv-stat-card {
+      position: absolute;
+      width: 180px;
+      bottom: 60px;
+      right: -20px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: linear-gradient(160deg, #1E1E22, #161618);
+      border: 0.5px solid var(--hair);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      opacity: 0.75;
+    }
+    .hv-stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .hv-stat-value {
+      font-family: var(--serif-display);
+      font-size: 38px;
+      color: var(--fg-2);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .hv-stat-value span { font-size: 22px; color: var(--fg-3); }
+    .hv-stat-sub {
+      font-size: 12px;
+      color: var(--fg-3);
+      margin-top: 4px;
+    }
+    /* Main flip card */
+    .hv-flip-wrap {
+      position: relative;
+      z-index: 3;
+      width: 340px;
+      height: 230px;
+      perspective: 1200px;
+      cursor: pointer;
+    }
+    .hv-flip-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .hv-flip-wrap.flipped .hv-flip-inner { transform: rotateY(180deg); }
+    .hv-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      border: 0.5px solid var(--hair);
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 0 0.5px rgba(212,175,55,0.06);
+    }
+    .hv-face-front {
+      background: linear-gradient(180deg, #222225, #1A1A1D);
+    }
+    .hv-face-back {
+      background: linear-gradient(180deg, #1E1E22, #181820);
+      transform: rotateY(180deg);
+    }
+    .hv-face-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .hv-face-divider {
+      height: 0.5px;
+      background: rgba(212,175,55,0.18);
+      margin-bottom: 18px;
+    }
+    .hv-face-text {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.45;
+      color: var(--fg-read);
+    }
+    .hv-flip-hint {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--fg-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .hv-hint-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold);
+    }
+    /* Review date badge */
+    .hv-badge {
+      position: absolute;
+      top: 30px;
+      right: -30px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 100px;
+      background: rgba(212,175,55,0.12);
+      border: 0.5px solid rgba(212,175,55,0.3);
+      backdrop-filter: blur(8px);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+    .hv-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    /* ═══════════════════════════════════════════
+       PROBLEM SECTION
+    ═══════════════════════════════════════════ */
+    .section {
+      padding: 100px 0;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .section-header .kicker { margin-bottom: 16px; }
+    h2 {
+      font-family: var(--serif-display);
+      font-size: clamp(30px, 3.5vw, 44px);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -0.5px;
+      color: var(--fg-read);
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-family: var(--serif);
+      font-size: 18px;
+      color: var(--fg-2);
+      line-height: 1.6;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .problem-card {
+      padding: 28px 28px 32px;
+      border-radius: 20px;
+      background: var(--bg-card);
+      border: 0.5px solid var(--hair);
+      position: relative;
+      overflow: hidden;
+    }
+    .problem-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--hair-s), transparent);
+    }
+    .problem-card-name {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--fg-3);
+      margin-bottom: 14px;
+    }
+    .problem-card-title {
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 500;
+      color: var(--fg);
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .problem-card-body {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--fg-3);
+    }
+    .problem-bridge {
+      text-align: center;
+      margin-top: 48px;
+      font-family: var(--serif);
+      font-size: 19px;
+      font-style: italic;
+      color: var(--fg-2);
+    }
+    .problem-bridge strong { color: var(--gold); font-style: normal; font-weight: 500; }
+
+    /* ═══════════════════════════════════════════
+       FSRS ALGO SECTION
+    ═══════════════════════════════════════════ */
+    .algo-section {
+      background: var(--bg-2);
+      border-top: 0.5px solid var(--hair);
+      border-bottom: 0.5px solid var(--hair);
+      padding: 100px 0;
+    }
+    .algo-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .algo-copy { }
+    .algo-copy h2 { text-align: left; margin-bottom: 20px; }
+    .algo-copy .section-sub { text-align: left; margin: 0 0 40px; max-width: 420px; }
+    .algo-points { display: flex; flex-direction: column; gap: 24px; }
+    .algo-point {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .algo-point-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--gold-tint);
+      border: 0.5px solid rgba(212,175,55,0.2);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    .algo-point-body h4 {
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 4px;
+    }
+    .algo-point-body p {
+      font-size: 14px;
+      color: var(--fg-3);
+      line-height: 1.6;
+    }
+    /* Timeline visual */
+    .algo-timeline {
+      background: var(--bg-card);
+      border-radius: 24px;
+      border: 0.5px solid var(--hair);
+      padding: 32px 28px 36px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .timeline-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 32px;
+    }
+    .timeline-steps {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .timeline-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      position: relative;
+    }
+    .timeline-step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      width: 1px;
+      height: calc(100% + 4px);
+      background: linear-gradient(to bottom, rgba(212,175,55,0.3), rgba(212,175,55,0.05));
+    }
+    .timeline-node {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .timeline-node-inner {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+    .timeline-node.dim {
+      border-color: var(--fg-3);
+      opacity: 0.4;
+    }
+    .timeline-node.dim .timeline-node-inner { background: var(--fg-3); }
+    .timeline-content {
+      padding: 4px 0 28px;
+    }
+    .timeline-content:last-child { padding-bottom: 0; }
+    .timeline-when {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+    .timeline-when.dim { color: var(--fg-3); }
+    .timeline-title {
+      font-family: var(--serif);
+      font-size: 15px;
+      color: var(--fg);
+      margin-bottom: 2px;
+    }
+    .timeline-desc {
+      font-size: 13px;
+      color: var(--fg-3);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════
+       ADHD FEATURES
+    ═══════════════════════════════════════════ */
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .feature-card {
+      padding: 32px 30px 36px;
+      border-radius: 20px;
+      background: var(--bg-card);
+      border: 0.5px solid var(--hair);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s;
+    }
+    .feature-card:hover { border-color: rgba(212,175,55,0.2); }
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 0%, rgba(212,175,55,0.04), transparent 65%);
+      pointer-events: none;
+    }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--gold-tint);
+      border: 0.5px solid rgba(212,175,55,0.18);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
+    .feature-card p {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--fg-3);
+    }
+    .feature-card p strong {
+      color: var(--fg-2);
+      font-weight: 500;
+    }
+
+    /* ═══════════════════════════════════════════
+       DEMO SECTION
+    ═══════════════════════════════════════════ */
+    .demo-section {
+      background: var(--bg-2);
+      border-top: 0.5px solid var(--hair);
+      border-bottom: 0.5px solid var(--hair);
+      padding: 100px 0;
+    }
+    .demo-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+    /* Demo flip card */
+    .demo-card-wrap {
+      width: 440px;
+      max-width: 100%;
+      height: 280px;
+      perspective: 1200px;
+      cursor: pointer;
+    }
+    .demo-card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .demo-card-wrap.flipped .demo-card-inner { transform: rotateY(180deg); }
+    .demo-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 22px;
+      border: 0.5px solid var(--hair);
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .demo-face-front {
+      background: linear-gradient(180deg, #242428, #1C1C20);
+    }
+    .demo-face-back {
+      background: linear-gradient(180deg, #1E2024, #181A1E);
+      transform: rotateY(180deg);
+    }
+    .demo-face-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .demo-face-divider {
+      height: 0.5px;
+      background: rgba(212,175,55,0.15);
+      margin-bottom: 22px;
+    }
+    .demo-face-text {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: var(--serif);
+      font-size: 20px;
+      line-height: 1.45;
+      color: var(--fg-read);
+    }
+    .demo-hint {
+      font-size: 13px;
+      color: var(--fg-3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .demo-hint-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    /* Rating buttons */
+    .demo-ratings {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .rating-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 28px;
+      border-radius: 14px;
+      border: 0.5px solid var(--hair-s);
+      background: var(--bg-card);
+      color: var(--fg-2);
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s, border-color 0.2s, transform 0.12s;
+    }
+    .rating-btn:hover { transform: translateY(-2px); }
+    .rating-btn.again:hover { border-color: rgba(255,100,90,0.4); background: rgba(255,100,90,0.06); color: #FF9A94; }
+    .rating-btn.good:hover  { border-color: rgba(212,175,55,0.4); background: var(--gold-tint); color: var(--gold); }
+    .rating-btn.easy:hover  { border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.06); color: #4ADE80; }
+    .rating-btn span {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--fg-3);
+      letter-spacing: 0.3px;
+    }
+    .demo-caption {
+      max-width: 480px;
+      text-align: center;
+      font-family: var(--serif);
+      font-size: 15px;
+      font-style: italic;
+      color: var(--fg-3);
+      line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════════
+       FAQ
+    ═══════════════════════════════════════════ */
+    .faq-list {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    details {
+      border-bottom: 0.5px solid var(--hair);
+    }
+    details:first-child { border-top: 0.5px solid var(--hair); }
+    summary {
+      list-style: none;
+      padding: 22px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      font-family: var(--serif);
+      font-size: 17px;
+      color: var(--fg);
+      font-weight: 500;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .faq-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 0.5px solid var(--hair-s);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      color: var(--gold);
+      font-size: 16px;
+      font-weight: 300;
+      font-family: var(--sans);
+      transition: transform 0.25s ease, background 0.2s;
+    }
+    details[open] .faq-icon {
+      transform: rotate(45deg);
+      background: var(--gold-tint);
+      border-color: rgba(212,175,55,0.3);
+    }
+    details[open] summary { color: var(--fg-read); }
+    .faq-answer {
+      padding-bottom: 22px;
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--fg-3);
+    }
+    .faq-answer strong { color: var(--fg-2); font-weight: 500; }
+
+    /* ═══════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════ */
+    footer {
+      padding: 60px 0 48px;
+      border-top: 0.5px solid var(--hair);
+    }
+    .footer-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .footer-brand { display: flex; flex-direction: column; gap: 10px; }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-logo-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(145deg, var(--gold-l), var(--gold), var(--gold-d));
+      display: grid;
+      place-items: center;
+      font-family: var(--serif-display);
+      font-size: 17px;
+      color: #1A1405;
+    }
+    .footer-logo-name {
+      font-family: var(--serif-display);
+      font-size: 17px;
+      color: var(--fg-read);
+    }
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--fg-3);
+      font-style: italic;
+    }
+    .footer-links {
+      display: flex;
+      gap: 28px;
+      font-size: 14px;
+      color: var(--fg-3);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .footer-links a:hover { color: var(--fg-2); transition: color 0.2s; }
+    .footer-copy {
+      width: 100%;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 0.5px solid var(--hair);
+      font-size: 13px;
+      color: var(--fg-3);
+    }
+
+    /* ═══════════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════════ */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.3; transform: scale(0.65); }
+    }
+    @keyframes hero-float {
+      0%, 100% { transform: rotate(-6deg) translateY(0px); }
+      50%       { transform: rotate(-6deg) translateY(-8px); }
+    }
+    .hv-ring-card { animation: hero-float 4s ease-in-out infinite; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade-in { opacity: 1; transform: none; transition: none; }
+      .hv-flip-inner, .demo-card-inner { transition: none; }
+      .hv-ring-card { animation: none; }
+      .hv-badge-dot, .demo-hint-dot { animation: none; }
+    }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE — tablet
+    ═══════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .container, nav, .hero-inner, .footer-inner { padding-left: 24px; padding-right: 24px; }
+      .hero-inner { grid-template-columns: 1fr; gap: 56px; }
+      .hero-visual { height: 380px; }
+      .hv-ring-card { left: 0; }
+      .hv-badge { right: 0; top: 10px; }
+      .algo-inner { grid-template-columns: 1fr; gap: 48px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .problem-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    /* ─── mobile ─── */
+    @media (max-width: 600px) {
+      h1 { font-size: 40px; }
+      h2 { font-size: 28px; }
+      .hero { padding: 80px 0 60px; }
+      .section, .algo-section, .demo-section { padding: 72px 0; }
+      .hero-visual { height: 320px; }
+      .hv-flip-wrap { width: 290px; height: 200px; }
+      .demo-card-wrap { height: 240px; }
+      .demo-face-text { font-size: 17px; }
+      .hv-stat-card { display: none; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+      .btn-primary, .btn-ghost { width: 100%; justify-content: center; }
+      .footer-inner { flex-direction: column; gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ─── -->
+  <header>
+    <nav>
+      <a href="#" class="nav-logo" aria-label="Mémoire — accueil">
+        <div class="nav-logo-mark" aria-hidden="true">M</div>
+        <span class="nav-logo-name">Mémoire</span>
+      </a>
+
+      <ul class="nav-links" role="list">
+        <li><a href="#algo">L'algo</a></li>
+        <li><a href="#features">Conçu pour toi</a></li>
+        <li><a href="#demo">Démo</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+
+      <div class="nav-cta" aria-label="Disponible bientôt sur l'App Store">
+        <svg width="16" height="19" viewBox="0 0 22 26" fill="none" aria-hidden="true">
+          <path d="M17.5 13.8c0-3 2.4-4.4 2.5-4.5-1.4-2-3.5-2.3-4.2-2.3-1.8-.2-3.5 1-4.4 1s-2.3-1-3.8-1c-2 0-3.8 1.1-4.8 2.8-2 3.5-.5 8.7 1.5 11.5 1 1.4 2.1 2.9 3.6 2.8 1.4-.1 2-.9 3.7-.9s2.2.9 3.8.9c1.6 0 2.5-1.4 3.5-2.8 1.1-1.6 1.5-3.2 1.5-3.3-.1 0-2.9-1.1-2.9-4.3zM14.5 4.5c.8-1 1.3-2.3 1.2-3.6-1.1.1-2.5.8-3.3 1.7-.7.9-1.4 2.2-1.2 3.5 1.3.1 2.5-.6 3.3-1.6z" fill="currentColor"/>
+        </svg>
+        App Store
+        <span class="nav-pill">Bientôt</span>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ─── HERO ─── -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-glow" aria-hidden="true"></div>
+
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="kicker hero-kicker">FSRS v5 · iOS · 2026</p>
+
+          <h1 id="hero-title">
+            Apprendre<br>
+            ce qui compte.<br>
+            <em>Sans s'épuiser.</em>
+          </h1>
+
+          <p class="hero-sub">
+            Mémoire est une app de répétition espacée conçue pour les adultes TDAH. L'algorithme FSRS calcule exactement quand réviser chaque carte — tu fais le travail, l'app gère le reste.
+          </p>
+
+          <div class="hero-actions">
+            <div class="btn-primary" role="img" aria-label="Disponible bientôt sur l'App Store">
+              <svg width="18" height="22" viewBox="0 0 22 26" fill="none" aria-hidden="true">
+                <path d="M17.5 13.8c0-3 2.4-4.4 2.5-4.5-1.4-2-3.5-2.3-4.2-2.3-1.8-.2-3.5 1-4.4 1s-2.3-1-3.8-1c-2 0-3.8 1.1-4.8 2.8-2 3.5-.5 8.7 1.5 11.5 1 1.4 2.1 2.9 3.6 2.8 1.4-.1 2-.9 3.7-.9s2.2.9 3.8.9c1.6 0 2.5-1.4 3.5-2.8 1.1-1.6 1.5-3.2 1.5-3.3-.1 0-2.9-1.1-2.9-4.3zM14.5 4.5c.8-1 1.3-2.3 1.2-3.6-1.1.1-2.5.8-3.3 1.7-.7.9-1.4 2.2-1.2 3.5 1.3.1 2.5-.6 3.3-1.6z" fill="currentColor"/>
+              </svg>
+              Bientôt sur l'App Store
+            </div>
+
+            <a href="#demo" class="btn-ghost" data-scroll="demo">
+              Essayer la démo
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M7 1v12M1 7l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="trust-bar" role="list">
+            <span class="trust-item" role="listitem">
+              <span class="trust-dot" aria-hidden="true"></span>
+              Dark par défaut
+            </span>
+            <span class="trust-item" role="listitem">
+              <span class="trust-dot" aria-hidden="true"></span>
+              Offline-first
+            </span>
+            <span class="trust-item" role="listitem">
+              <span class="trust-dot" aria-hidden="true"></span>
+              Aucune pub
+            </span>
+            <span class="trust-item" role="listitem">
+              <span class="trust-dot" aria-hidden="true"></span>
+              Aucun tracker
+            </span>
+          </div>
+        </div>
+
+        <!-- Hero visual -->
+        <div class="hero-visual" aria-hidden="true">
+          <!-- Back ring card -->
+          <div class="hv-ring-card">
+            <svg width="200" height="200" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="80" stroke="rgba(255,255,255,0.05)" stroke-width="14" fill="none"/>
+              <circle cx="100" cy="100" r="80"
+                stroke="#D4AF37" stroke-width="14"
+                stroke-linecap="round" fill="none"
+                stroke-dasharray="502.6" stroke-dashoffset="140"
+                transform="rotate(-90 100 100)"/>
+              <text x="100" y="93" text-anchor="middle" font-family="'DM Serif Display', serif" font-size="36" fill="#F5F5F7">73</text>
+              <text x="100" y="113" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6E6E75" font-weight="500">/ 30 jours</text>
+            </svg>
+          </div>
+
+          <!-- Stat badge -->
+          <div class="hv-stat-card">
+            <div class="hv-stat-label">Régularité</div>
+            <div class="hv-stat-value">21<span>/30</span></div>
+            <div class="hv-stat-sub">jours ce mois</div>
+          </div>
+
+          <!-- Next review badge -->
+          <div class="hv-badge">
+            <div class="hv-badge-dot"></div>
+            Prochaine révision · 3 mai
+          </div>
+
+          <!-- Flip card -->
+          <div class="hv-flip-wrap" id="hero-card" role="button" tabindex="0"
+               aria-label="Carte interactive — cliquer pour retourner"
+               onclick="this.classList.toggle('flipped')"
+               onkeydown="if(event.key==='Enter'||event.key===' ')this.classList.toggle('flipped')">
+            <div class="hv-flip-inner">
+              <div class="hv-face hv-face-front">
+                <div class="hv-face-label">Question</div>
+                <div class="hv-face-divider"></div>
+                <div class="hv-face-text">
+                  Quelle est la différence entre <em style="color:var(--gold);font-style:italic">stabilité</em> et <em style="color:var(--gold);font-style:italic">récupérabilité</em> dans FSRS&nbsp;?
+                </div>
+              </div>
+              <div class="hv-face hv-face-back">
+                <div class="hv-face-label">Réponse</div>
+                <div class="hv-face-divider"></div>
+                <div class="hv-face-text">
+                  La <strong style="color:var(--fg)">stabilité</strong> mesure combien de temps un souvenir dure. La <strong style="color:var(--fg)">récupérabilité</strong> est la probabilité de s'en souvenir maintenant.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hv-flip-hint">
+            <span class="hv-hint-dot"></span>
+            Clique pour retourner
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PROBLEM ─── -->
+    <section class="section" id="problem" aria-labelledby="problem-title">
+      <div class="container">
+        <div class="section-header fade-in">
+          <p class="kicker">Le constat</p>
+          <h2 id="problem-title">Ce que les apps de flashcards<br>n'ont pas compris</h2>
+          <p class="section-sub">Les outils existants ont été conçus pour des cerveaux neurotypiques. Pour les adultes TDAH, ce sont autant de sources de friction et d'anxiété.</p>
+        </div>
+
+        <div class="problem-grid">
+          <article class="problem-card fade-in">
+            <div class="problem-card-name">Anki</div>
+            <div class="problem-card-title">Puissant, mais épuisant</div>
+            <p class="problem-card-body">Interface de 2006 inchangée. Des dizaines de paramètres à configurer avant de commencer. L'« ease hell » piège les utilisateurs dans un cycle de réglages sans fin. Pas une seule décision de design pour les cerveaux TDAH.</p>
+          </article>
+
+          <article class="problem-card fade-in">
+            <div class="problem-card-name">Quizlet</div>
+            <div class="problem-card-title">Gamification anxiogène</div>
+            <p class="problem-card-body">Streaks qui punissent l'absence. Timers qui accélèrent le rythme. Paywalls agressifs au milieu d'une session. Design criard et surchargé. Tout ce qui déclenche l'anxiété de performance chez les adultes TDAH.</p>
+          </article>
+
+          <article class="problem-card fade-in">
+            <div class="problem-card-name">Les autres</div>
+            <div class="problem-card-title">Conçus pour persévérants</div>
+            <p class="problem-card-body">RemNote, Mochi, Notion… Ils supposent une régularité sans failles, une concentration soutenue, et une tolérance à la surcharge d'information. Des outils pour perfectionnistes, pas pour des cerveaux qui fonctionnent différemment.</p>
+          </article>
+        </div>
+
+        <p class="problem-bridge fade-in">
+          Mémoire a été pensé différemment — <strong>dès le premier écran.</strong>
+        </p>
+      </div>
+    </section>
+
+    <!-- ─── ALGO FSRS ─── -->
+    <section class="algo-section" id="algo" aria-labelledby="algo-title">
+      <div class="container">
+        <div class="algo-inner">
+          <div class="algo-copy fade-in">
+            <p class="kicker" style="margin-bottom:16px">L'algorithme</p>
+            <h2 id="algo-title">Un algorithme qui<br>apprend ton cerveau</h2>
+            <p class="section-sub">FSRS (Free Spaced Repetition Scheduler) est l'algorithme de répétition espacée open-source le plus avancé disponible. Il modélise ta mémoire, pas une mémoire moyenne.</p>
+
+            <div class="algo-points">
+              <div class="algo-point">
+                <div class="algo-point-icon" aria-hidden="true">◎</div>
+                <div class="algo-point-body">
+                  <h4>Difficulté individuelle</h4>
+                  <p>Chaque carte calcule sa propre courbe d'oubli. Une carte difficile pour toi revient plus souvent — indépendamment des statistiques globales.</p>
+                </div>
+              </div>
+
+              <div class="algo-point">
+                <div class="algo-point-icon" aria-hidden="true">⟐</div>
+                <div class="algo-point-body">
+                  <h4>Scheduling transparent</h4>
+                  <p>Touche une carte dans l'app : tu vois sa stabilité, sa difficulté et sa prochaine date de révision. Pas de boîte noire, pas d'anxiété de carte "perdue".</p>
+                </div>
+              </div>
+
+              <div class="algo-point">
+                <div class="algo-point-icon" aria-hidden="true">↗</div>
+                <div class="algo-point-body">
+                  <h4>Intervalles adaptatifs</h4>
+                  <p>Une carte maîtrisée disparaît des mois. Une carte difficile revient dans les jours. L'app optimise chaque révision pour maximiser la rétention à effort minimal.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="algo-timeline fade-in" aria-label="Timeline d'une carte FSRS">
+            <div class="timeline-label">Cycle de vie d'une carte</div>
+            <div class="timeline-steps" role="list">
+              <div class="timeline-step" role="listitem">
+                <div class="timeline-node"><div class="timeline-node-inner"></div></div>
+                <div class="timeline-content">
+                  <div class="timeline-when">Création</div>
+                  <div class="timeline-title">Carte ajoutée</div>
+                  <div class="timeline-desc">L'algorithme démarre avec des paramètres par défaut. Tout commence ici.</div>
+                </div>
+              </div>
+
+              <div class="timeline-step" role="listitem">
+                <div class="timeline-node"><div class="timeline-node-inner"></div></div>
+                <div class="timeline-content">
+                  <div class="timeline-when">10 min · 1 h · Lendemain</div>
+                  <div class="timeline-title">Apprentissage initial</div>
+                  <div class="timeline-desc">Trois étapes courtes pour ancrer la carte avant de confier le rythme à FSRS.</div>
+                </div>
+              </div>
+
+              <div class="timeline-step" role="listitem">
+                <div class="timeline-node"><div class="timeline-node-inner"></div></div>
+                <div class="timeline-content">
+                  <div class="timeline-when">3 jours → 14 jours → …</div>
+                  <div class="timeline-title">Intervalles croissants</div>
+                  <div class="timeline-desc">Chaque bonne réponse allonge l'intervalle. FSRS calcule la date exacte selon ta performance réelle.</div>
+                </div>
+              </div>
+
+              <div class="timeline-step" role="listitem">
+                <div class="timeline-node dim"><div class="timeline-node-inner"></div></div>
+                <div class="timeline-content">
+                  <div class="timeline-when dim">30 j · 90 j · 1 an+</div>
+                  <div class="timeline-title" style="color:var(--fg-2)">Mémoire à long terme</div>
+                  <div class="timeline-desc">La carte revient une ou deux fois par an — juste assez pour ne jamais l'oublier.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ADHD FEATURES ─── -->
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="container">
+        <div class="section-header fade-in">
+          <p class="kicker">Conçu pour toi</p>
+          <h2 id="features-title">Pensé pour comment<br>ton cerveau fonctionne vraiment</h2>
+          <p class="section-sub">Chaque décision de design dans Mémoire vient d'une question : est-ce que ça réduit la friction pour un cerveau TDAH&nbsp;?</p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card fade-in">
+            <div class="feature-icon" aria-hidden="true">⏱</div>
+            <h3>Micro-sessions</h3>
+            <p>5 à 15 minutes. <strong>Pas de minuteur.</strong> Pas de pression. Tu commences quand tu veux, tu t'arrêtes quand tu veux. L'algorithme s'adapte à ton rythme, pas l'inverse.</p>
+          </article>
+
+          <article class="feature-card fade-in">
+            <div class="feature-icon" aria-hidden="true">✦</div>
+            <h3>Pas de streak</h3>
+            <p>Tu rates un jour — ou une semaine ? <strong>Ton score ne se réinitialise pas.</strong> Il reflète ta régularité sur les 30 derniers jours. L'app t'accueille sans jugement à chaque retour.</p>
+          </article>
+
+          <article class="feature-card fade-in">
+            <div class="feature-icon" aria-hidden="true">🌙</div>
+            <h3>Design calme</h3>
+            <p>Dark mode, or mat, typographie serif. <strong>Aucune couleur criarde.</strong> Aucun badge de notification rouge. Aucune alerte anxiogène. Un espace d'apprentissage qui ressemble à une bibliothèque, pas à un jeu mobile.</p>
+          </article>
+
+          <article class="feature-card fade-in">
+            <div class="feature-icon" aria-hidden="true">◎</div>
+            <h3>Mode Calme</h3>
+            <p>Surcharge sensorielle aujourd'hui ? Active Mode Calme en un tap. <strong>Les effets glass disparaissent. Les animations s'éteignent.</strong> L'apprentissage reste. Les distractions, non.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── DEMO ─── -->
+    <section class="demo-section" id="demo" aria-labelledby="demo-title">
+      <div class="container">
+        <div class="section-header fade-in">
+          <p class="kicker">Démo interactive</p>
+          <h2 id="demo-title">Essaie. Clique la carte.</h2>
+        </div>
+
+        <div class="demo-inner">
+          <div class="demo-card-wrap" id="demo-card"
+               role="button" tabindex="0"
+               aria-label="Carte de révision — cliquer pour retourner"
+               onclick="this.classList.toggle('flipped')"
+               onkeydown="if(event.key==='Enter'||event.key===' ')this.classList.toggle('flipped')">
+            <div class="demo-card-inner">
+              <div class="demo-face demo-face-front">
+                <div class="demo-face-label">Question</div>
+                <div class="demo-face-divider"></div>
+                <div class="demo-face-text">
+                  Qu'est-ce qui différencie la répétition espacée de la révision classique&nbsp;?
+                </div>
+              </div>
+              <div class="demo-face demo-face-back">
+                <div class="demo-face-label">Réponse</div>
+                <div class="demo-face-divider"></div>
+                <div class="demo-face-text">
+                  La révision espacée programme chaque rappel au <strong style="color:var(--fg)">moment optimal</strong> — juste avant l'oubli — pour maximiser la rétention à effort minimal.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="demo-hint">
+            <span class="demo-hint-dot"></span>
+            Clique la carte pour voir la réponse
+          </div>
+
+          <div class="demo-ratings" role="group" aria-label="Boutons de notation">
+            <button class="rating-btn again" aria-label="À revoir — difficulté maximale">
+              À revoir
+              <span>Revient vite</span>
+            </button>
+            <button class="rating-btn good" aria-label="Moyen — difficulté moyenne">
+              Moyen
+              <span>Intervalle standard</span>
+            </button>
+            <button class="rating-btn easy" aria-label="Facile — maîtrisé">
+              Facile
+              <span>Intervalle allongé</span>
+            </button>
+          </div>
+
+          <p class="demo-caption">
+            Dans l'app, chaque notation met à jour l'algorithme FSRS et calcule ta prochaine révision. Tu vois la date directement sur la carte.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── FAQ ─── -->
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="section-header fade-in">
+          <p class="kicker">Questions fréquentes</p>
+          <h2 id="faq-title">Tu as des questions.<br>On a des réponses.</h2>
+        </div>
+
+        <div class="faq-list fade-in" role="list">
+          <details>
+            <summary role="listitem">
+              C'est quoi exactement la répétition espacée&nbsp;?
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <p class="faq-answer">
+              La répétition espacée est une technique de mémorisation qui consiste à revoir une information <strong>juste avant de l'oublier</strong>, à intervalles croissants. Au lieu de tout réviser chaque jour, tu revois chaque carte au moment optimal — le lendemain, puis dans 3 jours, puis dans 2 semaines, puis dans 6 mois. Résultat : moins de travail, bien plus de rétention.
+            </p>
+          </details>
+
+          <details>
+            <summary role="listitem">
+              En quoi FSRS est différent de l'algorithme d'Anki&nbsp;?
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <p class="faq-answer">
+              Anki utilise SM-2, un algorithme conçu en 1987. FSRS est open-source, développé en 2022, et modélise la mémoire humaine avec des équations différentielles. Il calcule la <strong>probabilité de rappel</strong> de chaque carte à chaque instant, et optimise le scheduling pour atteindre ton niveau de rétention cible. En pratique : moins de révisions inutiles, meilleure mémorisation.
+            </p>
+          </details>
+
+          <details>
+            <summary role="listitem">
+              Est-ce que ça marche vraiment pour le TDAH&nbsp;?
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <p class="faq-answer">
+              La répétition espacée fonctionne pour tous les types de mémoire — TDAH ou non. La recherche montre que les adultes TDAH ne mémorisent pas moins bien, ils ont souvent plus de mal à <strong>encoder l'information</strong> en première instance (concentration, encodage actif). Mémoire agit sur les deux leviers : des sessions courtes qui favorisent l'encodage, et FSRS qui gère le rappel à ta place.
+            </p>
+          </details>
+
+          <details>
+            <summary role="listitem">
+              Que se passe-t-il si j'oublie des jours&nbsp;?
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <p class="faq-answer">
+              Rien de dramatique. <strong>Il n'y a pas de streak à casser.</strong> Ton score de régularité reflète les 30 derniers jours — il monte quand tu révises, descend doucement quand tu t'absentes, mais ne se réinitialise jamais à zéro. L'app ne t'accueille pas avec une notification de honte. Elle dit juste : "17 cartes à réviser. On y va ?"
+            </p>
+          </details>
+
+          <details>
+            <summary role="listitem">
+              L'app fonctionne sans connexion Internet&nbsp;?
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <p class="faq-answer">
+              Oui, à 100%. Mémoire est <strong>offline-first</strong> : toutes tes données vivent sur ton appareil via SwiftData. Pas de compte requis, pas de cloud obligatoire, pas de données qui partent vers un serveur. Tu peux réviser en avion, en montagne, en mode avion.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-mark" aria-hidden="true">M</div>
+          <span class="footer-logo-name">Mémoire</span>
+        </div>
+        <p class="footer-tagline">Calm luxury for the curious mind.</p>
+      </div>
+
+      <nav class="footer-links" aria-label="Liens du footer">
+        <a href="https://github.com/quentin-aslan/Memoire" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="mailto:contact@quentinaslan.com">Contact</a>
+      </nav>
+    </div>
+
+    <div class="footer-inner">
+      <p class="footer-copy">© 2026 Quentin Aslan · Mémoire · Tous droits réservés</p>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll fade-in via IntersectionObserver
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Demo rating buttons — visual feedback only
+    document.querySelectorAll('.rating-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => btn.style.transform = '', 150);
+      });
+    });
+  </script>
+</body>
+</html>
