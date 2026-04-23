@@ -73,8 +73,6 @@ Mémoire/
   Services/
     NotificationScheduler.swift  notifications quotidiennes
     RegularityCalculator.swift   score de régularité (30 jours glissants)
-
-docs/adr/                    décisions architecturales documentées
 ```
 
 ## Conventions fortes
@@ -145,7 +143,7 @@ Tout override UIKit global (nav bar, table view cells) est centralisé dans `Me_
 
 ### Édition SwiftData
 
-Pour toute UI d'édition : utiliser un **draft struct** value-type (`DeckDraft`, `CardDraft`), jamais `@Bindable` direct sur un `@Model`. Le commit se fait uniquement au Save explicite. Cf [ADR-0004](docs/adr/0004-draft-struct-editing.md).
+Pour toute UI d'édition : utiliser un **draft struct** value-type (`DeckDraft`, `CardDraft`), jamais `@Bindable` direct sur un `@Model`. Le commit se fait uniquement au Save explicite.
 
 ### Soft delete
 
@@ -176,24 +174,12 @@ Jamais `try?` qui mange silencieusement. `do/catch` explicite ou `throws` propag
 
 MVP livré. Prochains chantiers (V1.1) : sync Supabase, Sign in with Apple, light theme, stats avancées, modifications TDAH de FSRS (backlog-aware, variabilité).
 
-## Décisions architecturales
-
-Cf dossier `docs/adr/` pour le contexte et les alternatives considérées :
-
-1. [ADR-0001](docs/adr/0001-ios-deployment-target.md) — iOS 18 minimum + iOS 26 progressif
-2. [ADR-0002](docs/adr/0002-liquid-glass-chrome-only.md) — Liquid Glass chrome-only via `memoireSurface`
-3. [ADR-0003](docs/adr/0003-swiftdata-supabase-deferred.md) — SwiftData local, Supabase V1.1
-4. [ADR-0004](docs/adr/0004-draft-struct-editing.md) — Draft struct pour éditer les `@Model`
-5. [ADR-0005](docs/adr/0005-swift-fsrs-shortterm.md) — swift-fsrs avec ShortTermScheduler
-6. [ADR-0006](docs/adr/0006-apppreferences-vs-usersettings.md) — `AppPreferences` temporaire vs `UserSettings @Model`
-
 ## Documents de référence
 
 Sources de vérité pour toute question produit, design ou scope. À consulter **avant** de proposer une nouvelle feature ou décision.
 
 - **`docs/cahier-des-charges/v1.1.txt`** — CDC complet (2304 lignes). Source unique pour : modèles de données exacts, algo FSRS, learning steps, 10 événements monitoring, freemium (3 decks / 100 cartes), onboarding (4 écrans), principes TDAH, empty states, hors-périmètre V1.1+.
 - **`docs/research/liquid-glass-brief.md`** — recherche externe qui a façonné toutes les décisions Liquid Glass : doctrine chrome-only, iOS 18+ progressive, Mode Calme, WCAG AAA 15:1, photophobie TDAH, split gold/goldOnGlass.
-- **`docs/design/v2-liquid-glass/`** — bundle de design v2 (HTML/JSX prototype + tokens). Référence visuelle pour chaque écran. Notables : `Mémoire.html` (canvas complet), `glass.jsx` (doctrine code), `tokens.jsx` (palette), `screens-*.jsx` (prototype React par écran).
 
 ## Hors périmètre MVP
 
