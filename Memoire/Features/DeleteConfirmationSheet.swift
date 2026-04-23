@@ -83,7 +83,6 @@ struct DeleteConfirmationSheet: View {
                         .background(Color.red, in: .rect(cornerRadius: 14))
                 }
                 .buttonStyle(.plain)
-                .accessibilityAddTraits(.isDestructive)
                 .accessibilityLabel(target.confirmAccessibilityLabel)
                 .accessibilityHint("Action irréversible")
             }
