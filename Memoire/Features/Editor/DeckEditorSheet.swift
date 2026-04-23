@@ -27,14 +27,23 @@ struct DeckEditorSheet: View {
                     iconPreview
                     nameField
                     colorPicker
-                    ctaButton
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
                 .padding(.bottom, 40)
             }
             .background(Color.bgPrimary)
-            .navigationTitle(isEditing ? "Modifier le paquet" : "Nouveau paquet")
+            .safeAreaInset(edge: .bottom) {
+                if !isEditing {
+                    Text("Vous ajouterez les cartes à l'étape suivante.")
+                        .font(.sans(13))
+                        .foregroundStyle(Color.textTertiary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
+                }
+            }
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -153,32 +162,6 @@ struct DeckEditorSheet: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
         }
         .buttonStyle(.plain)
-    }
-
-    private var ctaButton: some View {
-        VStack(spacing: 10) {
-            Button(action: save) {
-                Text(isEditing ? "Enregistrer" : "Créer le paquet")
-                    .font(.uiButton)
-                    .foregroundStyle(Color.bgPrimary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(
-                        draft.isValid
-                            ? LinearGradient(colors: [.goldLight, .gold], startPoint: .top, endPoint: .bottom)
-                            : LinearGradient(colors: [.gray.opacity(0.3), .gray.opacity(0.3)], startPoint: .top, endPoint: .bottom),
-                        in: .rect(cornerRadius: 14)
-                    )
-            }
-            .disabled(!draft.isValid)
-
-            if !isEditing {
-                Text("Vous ajouterez les cartes à l'étape suivante.")
-                    .font(.sans(13))
-                    .foregroundStyle(Color.textTertiary)
-                    .multilineTextAlignment(.center)
-            }
-        }
     }
 
     private func save() {

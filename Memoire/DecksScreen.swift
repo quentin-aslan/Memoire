@@ -9,7 +9,7 @@ struct DecksScreen: View {
     @Query private var allReviews: [Review]
 
     @State private var editingDeck: DeckDraft?
-    @State private var deckToDelete: Deck?
+    @State private var deleteRequest: DeleteRequest?
     @State private var deckSession: ReviewSession?
     @State private var navPath = NavigationPath()
     @State private var pendingNewDeck: Deck?
@@ -55,14 +55,14 @@ struct DecksScreen: View {
             .fullScreenCover(item: $deckSession) { session in
                 ReviewScreen(session: session)
             }
-            .sheet(item: $deckToDelete) { deck in
+            .sheet(item: $deleteRequest) { request in
                 DeleteConfirmationSheet(
-                    target: .deck(name: deck.name, cardCount: deck.cards.filter { !$0.isDeleted }.count),
+                    target: request.target,
                     onConfirm: {
-                        softDelete(deck)
-                        deckToDelete = nil
+                        request.confirm()
+                        deleteRequest = nil
                     },
-                    onCancel: { deckToDelete = nil }
+                    onCancel: { deleteRequest = nil }
                 )
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.hidden)
@@ -99,7 +99,13 @@ struct DecksScreen: View {
                     .listRowSeparator(.hidden)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
-                            deckToDelete = deck
+                            deleteRequest = DeleteRequest(
+                                target: .deck(
+                                    name: deck.name,
+                                    cardCount: deck.cards.filter { !$0.isDeleted }.count
+                                ),
+                                confirm: { softDelete(deck) }
+                            )
                         } label: {
                             Label("Supprimer", systemImage: "trash")
                         }

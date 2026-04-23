@@ -9,13 +9,13 @@ struct DeckDetailScreen: View {
     let onAutoOpenConsumed: (() -> Void)?
 
     @State private var editingCard: CardDraft?
+    @State private var deleteRequest: DeleteRequest?
 
     init(deck: Deck, autoOpenCardEditor: Bool = false, onAutoOpenConsumed: (() -> Void)? = nil) {
         self.deck = deck
         self.autoOpenCardEditor = autoOpenCardEditor
         self.onAutoOpenConsumed = onAutoOpenConsumed
     }
-    @State private var cardToDelete: Card?
 
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "DeckDetailScreen")
 
@@ -48,14 +48,14 @@ struct DeckDetailScreen: View {
         .sheet(item: $editingCard) { draft in
             CardEditorSheet(initialDraft: draft)
         }
-        .sheet(item: $cardToDelete) { card in
+        .sheet(item: $deleteRequest) { request in
             DeleteConfirmationSheet(
-                target: .card(name: card.front),
+                target: request.target,
                 onConfirm: {
-                    softDelete(card)
-                    cardToDelete = nil
+                    request.confirm()
+                    deleteRequest = nil
                 },
-                onCancel: { cardToDelete = nil }
+                onCancel: { deleteRequest = nil }
             )
             .presentationDetents([.medium])
             .presentationDragIndicator(.hidden)
@@ -84,7 +84,10 @@ struct DeckDetailScreen: View {
                     .listRowSeparator(.hidden)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
-                            cardToDelete = card
+                            deleteRequest = DeleteRequest(
+                                target: .card(name: card.front),
+                                confirm: { softDelete(card) }
+                            )
                         } label: {
                             Label("Supprimer", systemImage: "trash")
                         }
@@ -146,7 +149,7 @@ struct DeckDetailScreen: View {
                 .font(.serif(17, weight: .regular))
                 .foregroundStyle(Color.textReading)
                 .multilineTextAlignment(.leading)
-                .lineLimit(2)
+                .lineLimit(2, reservesSpace: true)
 
             HStack(spacing: 6) {
                 Circle()

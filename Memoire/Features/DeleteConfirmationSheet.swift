@@ -1,5 +1,11 @@
 import SwiftUI
 
+struct DeleteRequest: Identifiable {
+    let id = UUID()
+    let target: DeleteTarget
+    let confirm: () -> Void
+}
+
 enum DeleteTarget {
     case card(name: String)
     case deck(name: String, cardCount: Int)
