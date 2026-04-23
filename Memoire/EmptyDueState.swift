@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EmptyDueState: View {
     let regularityDays: Int
+    var hasPendingToday: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,7 +15,9 @@ struct EmptyDueState: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 28)
 
-            Text("Toutes vos cartes sont à jour.\nRevenez demain pour poursuivre.")
+            Text(hasPendingToday
+                 ? "Revenez plus tard.\nPour le moment toutes vos cartes sont validées."
+                 : "Toutes vos cartes sont à jour.\nRevenez demain pour poursuivre.")
                 .font(.serif(17).italic())
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)

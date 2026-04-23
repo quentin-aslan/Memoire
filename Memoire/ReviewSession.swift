@@ -57,10 +57,14 @@ final class ReviewSession: Identifiable {
         guard let card = currentCard else { return }
         let now = Date.now
 
-        // The card mutation (scheduler) and the Review insert are committed in the
-        // same save(). If save() fails, we rollback the context (discarding in-memory
-        // mutations) and do NOT advance the session — the user sees the same card again.
-        scheduler.schedule(card: card, rating: rating, at: now)
+        // Learning steps are an app-layer concern; FSRS is only called on graduation
+        // or for cards already in Review/Relearning (learningStep == -1).
+        if card.learningStep >= 0 {
+            applyLearningStep(to: card, rating: rating, now: now)
+        } else {
+            scheduler.schedule(card: card, rating: rating, at: now)
+        }
+
         let review = Review(cardID: card.id, rating: rating.rawValue, reviewedAt: now)
         context.insert(review)
 
@@ -80,6 +84,45 @@ final class ReviewSession: Identifiable {
         } catch {
             context.rollback()
             Self.logger.error("Failed to save review: \(error.localizedDescription)")
+        }
+    }
+
+    private func applyLearningStep(to card: Card, rating: Rating, now: Date) {
+        let steps = AppConstants.LearningSteps.steps
+        guard !steps.isEmpty else { return }
+
+        switch rating {
+        case .again:
+            card.learningStep = 0
+            card.nextReviewDate = now.addingTimeInterval(steps[0])
+            card.fsrsLastReview = now
+            card.fsrsReps += 1
+
+        case .good:
+            if card.learningStep < steps.count {
+                // Apply the current step's interval, then advance
+                card.nextReviewDate = now.addingTimeInterval(steps[card.learningStep])
+                card.fsrsLastReview = now
+                card.learningStep += 1
+                card.fsrsReps += 1
+            } else {
+                // All steps passed — hand off to FSRS with the card still in .new state
+                card.learningStep = -1
+                scheduler.schedule(card: card, rating: .good, at: now)
+            }
+
+        case .easy:
+            if card.learningStep == 0 {
+                // First presentation: jump to last step to force at least one overnight
+                // before Review — guards against reflex "Easy" on a freshly created card.
+                card.learningStep = steps.count
+                card.nextReviewDate = now.addingTimeInterval(steps[steps.count - 1])
+                card.fsrsLastReview = now
+                card.fsrsReps += 1
+            } else {
+                card.learningStep = -1
+                scheduler.schedule(card: card, rating: .easy, at: now)
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import SwiftUI
 struct DecksScreen: View {
     @Environment(\.modelContext) private var context
     @Environment(\.appPreferences) private var prefs
+    @Environment(\.deckCreation) private var deckCreation
     @Query(sort: \Deck.position) private var allDecks: [Deck]
     @Query private var allReviews: [Review]
 
@@ -15,6 +16,7 @@ struct DecksScreen: View {
     @State private var navPath = NavigationPath()
     @State private var pendingNewDeck: Deck?
     @State private var autoOpenEditorForDeckID: UUID?
+    @State private var quickCardEditor: CardDraft?
 
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "DecksScreen")
 
@@ -55,6 +57,14 @@ struct DecksScreen: View {
             }
             .fullScreenCover(item: $deckSession) { session in
                 ReviewScreen(session: session)
+            }
+            .sheet(item: $quickCardEditor) { draft in
+                CardEditorSheet(initialDraft: draft)
+            }
+            .onAppear {
+                guard let deck = deckCreation.createdDeck else { return }
+                deckCreation.createdDeck = nil
+                quickCardEditor = CardDraft(deckID: deck.id)
             }
             .confirmationDialog(
                 "Supprimer ce paquet ?",
@@ -180,55 +190,41 @@ struct DecksScreen: View {
         let totalCount = deck.cards.filter { !$0.isDeleted }.count
         let deckColor = Color(hex: deck.color ?? Color.goldHex)
 
-        return HStack(spacing: 0) {
-            RoundedRectangle(cornerRadius: 2)
+        return HStack(spacing: 14) {
+            Capsule()
                 .fill(deckColor)
-                .frame(width: 4)
-                .frame(maxHeight: .infinity)
+                .frame(width: 3, height: 36)
+                .shadow(color: deckColor.opacity(0.7), radius: 8, x: 0, y: 0)
 
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(deck.name)
-                        .font(.serif(19, weight: .medium))
-                        .foregroundStyle(Color.textPrimary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(deck.name)
+                    .font(.serif(17, weight: .medium))
+                    .foregroundStyle(Color.textPrimary)
 
-                    HStack(spacing: 6) {
-                        if dueCount > 0 {
-                            Circle().fill(Color.gold).frame(width: 6, height: 6)
-                            Text("\(dueCount) dues")
-                                .font(.sans(12, weight: .semibold))
-                                .foregroundStyle(Color.gold)
-                            Text("·")
-                                .foregroundStyle(Color.textTertiary)
-                        }
-                        Text("\(totalCount) cartes")
-                            .font(.sans(12))
-                            .foregroundStyle(Color.textSecondary)
-                    }
-                }
-
-                Spacer()
-
-                if dueCount > 0 {
-                    Button {
-                        launchSession(for: deck)
-                    } label: {
-                        Text("Réviser")
-                            .font(.sans(12, weight: .semibold))
-                            .foregroundStyle(Color.bgPrimary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.gold, in: .capsule)
-                    }
-                    .buttonStyle(.plain)
-                }
+                Text("\(totalCount) carte\(totalCount == 1 ? "" : "s")")
+                    .font(.sans(13))
+                    .foregroundStyle(Color.textSecondary)
             }
-            .padding(.vertical, 12)
-            .padding(.leading, 14)
-            .padding(.trailing, 12)
+
+            Spacer()
+
+            if dueCount > 0 {
+                Text("\(dueCount)")
+                    .font(.sans(14, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Color.bgElevated, in: .circle)
+            } else {
+                Text("à jour")
+                    .font(.sans(12))
+                    .foregroundStyle(Color.textTertiary)
+            }
         }
+        .padding(.vertical, 14)
+        .padding(.leading, 14)
+        .padding(.trailing, 12)
         .background(Color.bgCard)
-        .clipShape(.rect(cornerRadius: 12))
+        .clipShape(.rect(cornerRadius: 14))
     }
 
     private func moveDecks(from source: IndexSet, to destination: Int) {

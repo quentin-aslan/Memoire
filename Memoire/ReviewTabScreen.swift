@@ -24,7 +24,10 @@ struct ReviewTabScreen: View {
             Color.bgPrimary.ignoresSafeArea()
 
             if dueCards.isEmpty {
-                EmptyDueState(regularityDays: regularity)
+                EmptyDueState(
+                    regularityDays: regularity,
+                    hasPendingToday: DailyQueue.hasCardsDueToday(allCards: allCards)
+                )
             } else {
                 VStack(spacing: 0) {
                     Spacer()

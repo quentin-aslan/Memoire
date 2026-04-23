@@ -19,6 +19,10 @@ final class Card {
     var fsrsLapses: Int
     var nextReviewDate: Date?
 
+    // Learning steps layer — managed by ReviewSession, not FSRS.
+    // 0..N = step index; -1 = graduated (Review/Relearning, FSRS drives scheduling).
+    var learningStep: Int
+
     // Sync preparation
     var isDeleted: Bool
     var deletedAt: Date?
@@ -38,6 +42,7 @@ final class Card {
         fsrsReps: Int = 0,
         fsrsLapses: Int = 0,
         nextReviewDate: Date? = nil,
+        learningStep: Int = 0,
         isDeleted: Bool = false,
         deletedAt: Date? = nil,
         syncVersion: Int = 0,
@@ -55,6 +60,7 @@ final class Card {
         self.fsrsReps = fsrsReps
         self.fsrsLapses = fsrsLapses
         self.nextReviewDate = nextReviewDate
+        self.learningStep = learningStep
         self.isDeleted = isDeleted
         self.deletedAt = deletedAt
         self.syncVersion = syncVersion

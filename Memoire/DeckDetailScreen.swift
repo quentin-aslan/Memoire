@@ -64,7 +64,7 @@ struct DeckDetailScreen: View {
             guard autoOpenCardEditor else { return }
             onAutoOpenConsumed?()
             do {
-                try await Task.sleep(for: .milliseconds(400))
+                try await Task.sleep(for: .milliseconds(100))
             } catch {
                 return
             }

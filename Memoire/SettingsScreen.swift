@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SettingsScreen: View {
     @Environment(\.appPreferences) private var prefs
+    @Environment(\.openURL) private var openURL
+
+    private static let mailSubject = "Mémoire — Bug / Question"
 
     var body: some View {
         @Bindable var prefs = prefs
@@ -51,9 +54,29 @@ struct SettingsScreen: View {
                     Text("1.0 (MVP)")
                         .foregroundStyle(Color.textSecondary)
                 }
+                HStack {
+                    Text("Développeur")
+                    Spacer()
+                    Text("Quentin Aslan")
+                        .foregroundStyle(Color.textSecondary)
+                }
             } header: {
                 Text("À propos")
                     .foregroundStyle(Color.gold)
+            }
+
+            if let url = supportMailURL {
+                Section {
+                    Button {
+                        openURL(url)
+                    } label: {
+                        Text("Signaler un bug ou contacter")
+                    }
+                    .buttonStyle(.primary)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                }
+                .listSectionSpacing(.compact)
             }
 
             #if DEBUG
@@ -76,4 +99,13 @@ struct SettingsScreen: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    private var supportMailURL: URL? {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = AppConstants.Support.contactEmail
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: Self.mailSubject),
+        ]
+        return components.url
+    }
 }

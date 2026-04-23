@@ -15,7 +15,7 @@ import SwiftData
 /// Gated by a UserDefaults version key so it only runs once per install.
 enum SchedulerMigration {
     private static let versionKey = "schedulerMigrationVersion"
-    private static let currentVersion = 1
+    private static let currentVersion = 2
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "SchedulerMigration")
 
     static func runIfNeeded(in context: ModelContext) {
@@ -31,6 +31,11 @@ enum SchedulerMigration {
                 let expected = isPristine ? FSRSState.new.rawValue : FSRSState.review.rawValue
                 if card.fsrsState != expected {
                     card.fsrsState = expected
+                }
+                // Cards already reviewed before learning steps existed are graduated.
+                // New cards (fsrsReps == 0) keep learningStep = 0 (default) to enter steps.
+                if card.fsrsReps > 0 {
+                    card.learningStep = -1
                 }
             }
 

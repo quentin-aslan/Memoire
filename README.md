@@ -52,8 +52,7 @@ Après chaque révision, FSRS recalcule ces deux valeurs et programme la prochai
 
 **Intégration dans Mémoire :**
 - Package `4rays/swift-fsrs` (FSRS v5)
-- `ShortTermScheduler` pour les cartes en apprentissage intra-session
-- Adaptation des ratings `.easy` sur cartes nouvelles → `.good` pour éviter des intervalles irréalistes sur la première révision
+- **Learning steps** `[10 min → 1 h → 1 j]` gérés dans `ReviewSession` avant graduation vers Review — FSRS n'est appelé qu'à la graduation (cf. `Scheduling/`)
 - File quotidienne : cartes dues en retard d'abord, nouvelles cartes ensuite (plafond configurable, 10/jour par défaut)
 
 ---

@@ -59,16 +59,11 @@ extension Card {
 }
 
 extension Rating {
-    // For new/learning cards, .easy is downgraded to .good to avoid an unrealistic
-    // ~10-day first interval on a card that has never graduated. Only cards already
-    // in the review phase receive the full FSRS easy bonus.
-    func packageRating(forState state: Int) -> SwiftFSRS.Rating {
+    func packageRating() -> SwiftFSRS.Rating {
         switch self {
         case .again: return .again
         case .good:  return .good
-        case .easy:
-            let fsrsState = FSRSState(rawValue: state) ?? .new
-            return (fsrsState == .new || fsrsState == .learning) ? .good : .easy
+        case .easy:  return .easy
         }
     }
 }

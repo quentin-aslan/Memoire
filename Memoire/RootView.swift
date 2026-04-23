@@ -17,8 +17,12 @@ struct RootView: View {
         .sheet(item: Binding(
             get: { deckCreation.draft },
             set: { deckCreation.draft = $0 }
-        )) { draft in
-            DeckEditorSheet(initialDraft: draft)
+        ), onDismiss: {
+            if deckCreation.createdDeck != nil { selectedTab = .decks }
+        }) { draft in
+            DeckEditorSheet(initialDraft: draft, onCreated: { deck in
+                deckCreation.createdDeck = deck
+            })
         }
     }
 

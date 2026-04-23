@@ -27,4 +27,12 @@ enum AppConstants {
     enum Onboarding {
         static let pageCount = 4
     }
+
+    enum LearningSteps {
+        static let steps: [TimeInterval] = [600, 3600, 86400]  // 10 min, 1 h, 1 day
+    }
+
+    enum Support {
+        static let contactEmail = "contact@quentinaslan.com"
+    }
 }

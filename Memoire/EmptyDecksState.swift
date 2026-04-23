@@ -22,22 +22,9 @@ struct EmptyDecksState: View {
                 .padding(.top, 12)
 
             VStack(spacing: 12) {
-                Button(action: onCreateDeck) {
-                    Text("+ Créer un paquet")
-                        .font(.uiButton)
-                        .foregroundStyle(Color.bgPrimary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                colors: [.goldLight, .gold],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ),
-                            in: .rect(cornerRadius: 14)
-                        )
-                }
-                .accessibilityLabel("Créer un paquet")
+                Button("+ Créer un paquet", action: onCreateDeck)
+                    .buttonStyle(.primary)
+                    .accessibilityLabel("Créer un paquet")
             }
             .padding(.top, 36)
         }

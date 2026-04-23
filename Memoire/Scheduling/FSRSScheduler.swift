@@ -28,7 +28,7 @@ struct FSRSScheduler {
         let result = engine.schedule(
             card: snapshot,
             algorithm: algorithm,
-            reviewRating: rating.packageRating(forState: card.fsrsState),
+            reviewRating: rating.packageRating(),
             reviewTime: reviewTime
         )
         card.applyFSRS(result.postReviewCard)
