@@ -7,11 +7,6 @@ struct HomeScreen: View {
     @Query private var allCards: [Card]
     @Query private var allReviews: [Review]
     @State private var activeSession: ReviewSession?
-    @Binding var selectedTab: RootTab
-
-    init(selectedTab: Binding<RootTab>) {
-        _selectedTab = selectedTab
-    }
 
     private var dueCards: [Card] {
         DailyQueue.build(
@@ -24,7 +19,7 @@ struct HomeScreen: View {
     private var cardsDue: Int { dueCards.count }
 
     private var totalCards: Int {
-        allCards.filter { !$0.isDeleted }.count
+        allCards.filter { !$0.isSoftDeleted }.count
     }
 
     private var completionProgress: Double {
@@ -177,6 +172,6 @@ struct HomeScreen: View {
 }
 
 #Preview {
-    HomeScreen(selectedTab: .constant(.home))
+    HomeScreen()
         .modelContainer(for: [Deck.self, Card.self, Review.self], inMemory: true)
 }

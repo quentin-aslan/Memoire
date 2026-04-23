@@ -23,7 +23,7 @@ enum SchedulerMigration {
         guard stored < currentVersion else { return }
 
         do {
-            let descriptor = FetchDescriptor<Card>(predicate: #Predicate { !$0.isDeleted })
+            let descriptor = FetchDescriptor<Card>(predicate: #Predicate { !$0.isSoftDeleted })
             let cards = try context.fetch(descriptor)
 
             for card in cards {

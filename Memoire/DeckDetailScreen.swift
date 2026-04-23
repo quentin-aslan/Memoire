@@ -9,20 +9,19 @@ struct DeckDetailScreen: View {
     let onAutoOpenConsumed: (() -> Void)?
 
     @State private var editingCard: CardDraft?
+    @State private var deleteRequest: DeleteRequest?
 
     init(deck: Deck, autoOpenCardEditor: Bool = false, onAutoOpenConsumed: (() -> Void)? = nil) {
         self.deck = deck
         self.autoOpenCardEditor = autoOpenCardEditor
         self.onAutoOpenConsumed = onAutoOpenConsumed
     }
-    @State private var cardToDelete: Card?
-    @State private var showDeleteDialog: Bool = false
 
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "DeckDetailScreen")
 
     private var sortedCards: [Card] {
         deck.cards
-            .filter { !$0.isDeleted }
+            .filter { !$0.isSoftDeleted }
             .sorted { $0.createdAt < $1.createdAt }
     }
 
@@ -49,16 +48,18 @@ struct DeckDetailScreen: View {
         .sheet(item: $editingCard) { draft in
             CardEditorSheet(initialDraft: draft)
         }
-        .confirmationDialog(
-            "Supprimer cette carte ?",
-            isPresented: $showDeleteDialog,
-            titleVisibility: .visible
-        ) {
-            Button("Supprimer", role: .destructive) {
-                if let card = cardToDelete { softDelete(card) }
-                cardToDelete = nil
-            }
-            Button("Annuler", role: .cancel) { cardToDelete = nil }
+        .sheet(item: $deleteRequest) { request in
+            DeleteConfirmationSheet(
+                target: request.target,
+                onConfirm: {
+                    request.confirm()
+                    deleteRequest = nil
+                },
+                onCancel: { deleteRequest = nil }
+            )
+            .presentationDetents([.height(340)])
+            .presentationDragIndicator(.hidden)
+            .interactiveDismissDisabled(true)
         }
         .task {
             guard autoOpenCardEditor else { return }
@@ -82,12 +83,16 @@ struct DeckDetailScreen: View {
                     .listRowBackground(Color.bgCard)
                     .listRowSeparator(.hidden)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) {
-                            cardToDelete = card
-                            showDeleteDialog = true
+                        Button {
+                            deleteRequest = DeleteRequest(
+                                target: .card(name: card.front),
+                                confirm: { softDelete(card) }
+                            )
                         } label: {
                             Label("Supprimer", systemImage: "trash")
                         }
+                        .tint(.red)
+
                         Button {
                             editingCard = CardDraft.edit(card)
                         } label: {
@@ -173,10 +178,10 @@ struct DeckDetailScreen: View {
     }
 
     private func softDelete(_ card: Card) {
-        card.isDeleted = true
+        card.isSoftDeleted = true
         card.deletedAt = .now
         card.syncVersion += 1
-        card.syncStatus = 3
+        card.syncStatus = SyncStatus.pendingDelete.rawValue
         do {
             try context.save()
         } catch {

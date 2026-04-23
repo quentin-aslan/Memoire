@@ -193,7 +193,6 @@ Sources de vérité pour toute question produit, design ou scope. À consulter *
 
 - **`docs/cahier-des-charges/v1.1.txt`** — CDC complet (2304 lignes). Source unique pour : modèles de données exacts, algo FSRS, learning steps, 10 événements monitoring, freemium (3 decks / 100 cartes), onboarding (4 écrans), principes TDAH, empty states, hors-périmètre V1.1+.
 - **`docs/research/liquid-glass-brief.md`** — recherche externe qui a façonné toutes les décisions Liquid Glass : doctrine chrome-only, iOS 18+ progressive, Mode Calme, WCAG AAA 15:1, photophobie TDAH, split gold/goldOnGlass.
-- **`docs/design/v2-liquid-glass/`** — bundle de design v2 (HTML/JSX prototype + tokens). Référence visuelle pour chaque écran. Notables : `Mémoire.html` (canvas complet), `glass.jsx` (doctrine code), `tokens.jsx` (palette), `screens-*.jsx` (prototype React par écran).
 
 ## Hors périmètre MVP
 

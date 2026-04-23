@@ -24,7 +24,7 @@ final class Card {
     var learningStep: Int
 
     // Sync preparation
-    var isDeleted: Bool
+    var isSoftDeleted: Bool
     var deletedAt: Date?
     var syncVersion: Int
     var syncStatus: Int
@@ -43,7 +43,7 @@ final class Card {
         fsrsLapses: Int = 0,
         nextReviewDate: Date? = nil,
         learningStep: Int = 0,
-        isDeleted: Bool = false,
+        isSoftDeleted: Bool = false,
         deletedAt: Date? = nil,
         syncVersion: Int = 0,
         syncStatus: Int = 0
@@ -61,7 +61,7 @@ final class Card {
         self.fsrsLapses = fsrsLapses
         self.nextReviewDate = nextReviewDate
         self.learningStep = learningStep
-        self.isDeleted = isDeleted
+        self.isSoftDeleted = isSoftDeleted
         self.deletedAt = deletedAt
         self.syncVersion = syncVersion
         self.syncStatus = syncStatus

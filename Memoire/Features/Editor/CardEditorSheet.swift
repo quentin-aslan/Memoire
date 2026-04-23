@@ -263,14 +263,14 @@ struct CardEditorSheet: View {
                 card.front = draft.trimmedFront
                 card.back = draft.trimmedBack
                 card.syncVersion += 1
-                card.syncStatus = 2
+                card.syncStatus = SyncStatus.pendingUpdate.rawValue
             } else {
                 let card = Card(
                     front: draft.trimmedFront,
                     back: draft.trimmedBack,
                     deck: deck,
                     nextReviewDate: .now,
-                    syncStatus: 1
+                    syncStatus: SyncStatus.pendingCreate.rawValue
                 )
                 context.insert(card)
             }
