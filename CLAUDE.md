@@ -198,6 +198,7 @@ Cf dossier `docs/adr/` pour le contexte et les alternatives considérées :
 5. [ADR-0005](docs/adr/0005-swift-fsrs-shortterm.md) — swift-fsrs avec ShortTermScheduler
 6. [ADR-0006](docs/adr/0006-apppreferences-vs-usersettings.md) — `AppPreferences` temporaire vs `UserSettings @Model`
 7. [ADR-0007](docs/adr/0007-learning-steps.md) — Learning steps app-layer avant graduation FSRS
+8. [ADR-0008](docs/adr/0008-home-ux-tdah-pass.md) — Passe UX/TDAH sur l'Accueil (salut dynamique, estimation honnête, streak anti-flicker, garde-fou nuit)
 
 ## Documents de référence
 
