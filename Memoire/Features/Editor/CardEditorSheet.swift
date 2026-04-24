@@ -15,6 +15,11 @@ struct CardEditorSheet: View {
     @State private var deckColor: String = Color.goldHex
     @State private var deckName: String = ""
     @State private var showClearConfirm: Bool = false
+    // Snapshot of "is this segment filled?" — refreshed on defocus only (tab change).
+    // Decoupling from live draft state avoids the green dot blinking during typing,
+    // which is a TDAH distraction trap.
+    @State private var frontFilledSnapshot: Bool
+    @State private var backFilledSnapshot: Bool
 
     private let allowsQuickAdd: Bool
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "CardEditor")
@@ -28,7 +33,18 @@ struct CardEditorSheet: View {
         if initialDraft.isEditing, initialDraft.backMode == .drawing {
             _activeSegment = State(initialValue: .answer)
         }
+        _frontFilledSnapshot = State(initialValue: !initialDraft.trimmedFront.isEmpty)
+        _backFilledSnapshot  = State(initialValue: Self.backSnapshot(for: initialDraft))
     }
+
+    private static func backSnapshot(for draft: CardDraft) -> Bool {
+        switch draft.backMode {
+        case .text:    return !draft.trimmedBack.isEmpty
+        case .drawing: return draft.hasBackDrawing
+        }
+    }
+
+    private var currentBackFilled: Bool { Self.backSnapshot(for: draft) }
 
     var body: some View {
         NavigationStack {
@@ -135,18 +151,11 @@ struct CardEditorSheet: View {
 
     private var segmentedPicker: some View {
         HStack(spacing: 4) {
-            segmentButton(.question, label: "Question", filled: !draft.trimmedFront.isEmpty)
-            segmentButton(.answer, label: "Réponse", filled: backSegmentFilled)
+            segmentButton(.question, label: "Question", filled: frontFilledSnapshot)
+            segmentButton(.answer, label: "Réponse", filled: backFilledSnapshot)
         }
         .padding(4)
         .background(Color.bgCard, in: .rect(cornerRadius: 12))
-    }
-
-    private var backSegmentFilled: Bool {
-        switch draft.backMode {
-        case .text:    return !draft.trimmedBack.isEmpty
-        case .drawing: return draft.hasBackDrawing
-        }
     }
 
     private func segmentButton(_ segment: Segment, label: String, filled: Bool) -> some View {
@@ -308,9 +317,8 @@ struct CardEditorSheet: View {
                     .fill(Color.white.opacity(0.08))
                     .frame(height: 2)
 
-                let frontFilled = !draft.trimmedFront.isEmpty
-                let bothFilled = frontFilled && backSegmentFilled
-                let progress: CGFloat = bothFilled ? 1.0 : (frontFilled ? 0.5 : 0)
+                let bothFilled = frontFilledSnapshot && backFilledSnapshot
+                let progress: CGFloat = bothFilled ? 1.0 : (frontFilledSnapshot ? 0.5 : 0)
                 let barColor: Color = bothFilled ? .stateEasy : .gold
 
                 RoundedRectangle(cornerRadius: 1)
@@ -345,7 +353,17 @@ struct CardEditorSheet: View {
     }
 
     private func switchSegment(to segment: Segment) {
-        withAnimation(.easeInOut(duration: 0.2)) { activeSegment = segment }
+        guard segment != activeSegment else { return }
+        // Capture the leaving segment's filled state inside the same animation block as
+        // the tab transition — the green dot then fades in alongside the tab change.
+        withAnimation(.easeInOut(duration: 0.2)) {
+            if activeSegment == .question {
+                frontFilledSnapshot = !draft.trimmedFront.isEmpty
+            } else {
+                backFilledSnapshot = currentBackFilled
+            }
+            activeSegment = segment
+        }
         focusFieldForCurrentState()
     }
 
@@ -434,6 +452,10 @@ struct CardEditorSheet: View {
                 draft = CardDraft(deckID: deckID)
                 activeSegment = .question
                 focusedField = .front
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    frontFilledSnapshot = false
+                    backFilledSnapshot = false
+                }
             } else {
                 dismiss()
             }
