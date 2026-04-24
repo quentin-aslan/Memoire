@@ -37,7 +37,7 @@ struct EmptyDueState: View {
             regularityPill
                 .padding(.top, 24)
 
-            if let hint = nextReviewHint {
+            if let hint = HomeCopy.nextReviewHint(nextDueDate: nextDueDate) {
                 Text(hint)
                     .font(.sans(13))
                     .foregroundStyle(Color.textTertiary)
@@ -47,38 +47,6 @@ struct EmptyDueState: View {
             }
         }
         .padding(.top, 56)
-    }
-
-    private var nextReviewHint: String? {
-        guard let date = nextDueDate else { return nil }
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: .now)
-        let target = calendar.startOfDay(for: date)
-        guard let days = calendar.dateComponents([.day], from: today, to: target).day, days >= 1 else {
-            return nil
-        }
-
-        switch days {
-        case 1:
-            return "Prochaine révision demain."
-        case 7:
-            return "Prochaine révision dans une semaine."
-        case 2...14:
-            return "Prochaine révision dans \(days) jours."
-        default:
-            return "Prochaine révision le \(Self.shortDate(date))."
-        }
-    }
-
-    private static let shortDateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.dateFormat = "d MMMM"
-        return f
-    }()
-
-    private static func shortDate(_ date: Date) -> String {
-        shortDateFormatter.string(from: date)
     }
 
     private var checkCircle: some View {
