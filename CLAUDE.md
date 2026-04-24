@@ -5,7 +5,7 @@ App iOS de répétition espacée (FSRS) optimisée pour adultes TDAH. Esthétiqu
 ## Stack
 
 - **SwiftUI** — iOS 18.0 deployment target, iOS 26 progressive enhancement pour Liquid Glass
-- **SwiftData** — persistence locale. Champs sync prêts (`isDeleted`, `syncVersion`, `syncStatus`) mais **Supabase reporté V1.1**
+- **SwiftData** — persistence locale. Champs sync prêts (`isSoftDeleted`, `syncVersion`, `syncStatus`) mais **Supabase reporté V1.1**
 - **swift-fsrs** — algo de répétition espacée FSRS v5 (package SPM, `ShortTermScheduler`)
 - **Xcode 26+ / Swift 5** — build avec SDK iOS 26
 
@@ -16,27 +16,29 @@ App iOS de répétition espacée (FSRS) optimisée pour adultes TDAH. Esthétiqu
 ```bash
 cd "/Users/quentinaslan/DEV/Mémoire"
 scheme=$(xcodebuild -list 2>/dev/null | awk '/Schemes:/{found=1; next} found && NF{gsub(/^ +| +$/, "", $0); print; exit}')
-xcodebuild -project "Mémoire.xcodeproj" -scheme "$scheme" -destination 'generic/platform=iOS Simulator' build
+xcodebuild -project "Memoire.xcodeproj" -scheme "$scheme" -destination 'generic/platform=iOS Simulator' build
 ```
 
-Le trim `awk` est nécessaire à cause du `é` dans le nom du scheme (normalisation Unicode).
+Attention : seul le **dossier du repo** s'écrit `Mémoire` avec accent — le `.xcodeproj`, le target et le scheme s'écrivent tous `Memoire` (sans accent). Le `awk` ci-dessus trim simplement les espaces de l'output `xcodebuild -list`.
 
-Via MCP Xcode (`mcp__xcode__BuildProject`) : utilise la destination active dans Xcode → échoue si iPhone physique sélectionné sans Team.
+Si le MCP Xcode est connecté (`mcp__xcode__BuildProject`) : il utilise la destination active dans Xcode → échoue si iPhone physique sélectionné sans Team.
 
 ## Structure
 
 ```
-Mémoire/
-  Me_moireApp.swift          entrée @main + ModelContainer + UIKit Appearance + env injection
+Memoire/
+  MemoireApp.swift           entrée @main + ModelContainer + UIKit Appearance + env injection
   ContentView.swift          délègue à RootView
   RootView.swift             TabView + branchement onboarding/tabs + toolbarBackground calmMode
   AppPreferences.swift       @Observable UserDefaults-backed (prefs UI-only)
   AppRoute.swift             enum Hashable pour type-safe nav
+  DeckCreationCoordinator.swift  coordonne flow création deck entre Home et Decks
 
   Color+Tokens.swift         palette (init(hex:) + tokens sémantiques)
   Typography.swift           Font.serif/.sans + styles nommés
   GlassSurface.swift         modificateur .memoireSurface (unique point d'entrée glass)
   ProgressRing.swift         composant d'anneau réutilisable
+  PrimaryButton.swift        PrimaryButtonStyle (dégradé or) partagé
 
   HomeScreen.swift           Accueil (anneau + régularité + CTA)
   DecksScreen.swift          liste paquets (+ reorder + swipe delete + "+" create)
@@ -47,14 +49,17 @@ Mémoire/
   CompleteScreen.swift       fin de session
   Rating.swift               enum 3 cas : .again / .good / .easy → "À revoir / Moyen / Facile"
   OnboardingFlow.swift       4 pages avec sensibilité + rappel
-  SettingsScreen.swift       Form (Mode Calme, notif, cartes/jour)
+  SettingsScreen.swift       Form (Mode Calme, notif, cartes/jour, Signaler un bug)
+  EmptyDecksState.swift      empty state liste paquets (CTA + illustration)
+  EmptyDueState.swift        empty state « à jour » (avec variante « revenez plus tard »)
 
   Models/                    SwiftData @Model classes
     Deck.swift
-    Card.swift
+    Card.swift               inclut `learningStep: Int` (palier avant graduation FSRS)
     Review.swift
+    SyncStatus.swift         enum Int (synced/pendingCreate/pendingUpdate/pendingDelete)
 
-  AppConstants.swift         constantes partagées (Logger subsystem, notification ID, FSRS bounds…)
+  AppConstants.swift         constantes partagées (Logger subsystem, notification ID, FSRS bounds, LearningSteps.steps…)
 
   Scheduling/                algorithme FSRS
     FSRSState.swift          enum FSRSState (new/learning/review/relearning) — abstraction call-site
@@ -63,12 +68,14 @@ Mémoire/
     DailyQueue.swift         file quotidienne (due non-nouvelles + nouvelles plafonnées)
     SchedulerMigration.swift migration one-shot FSRS au premier lancement
 
-  Features/Editor/           CRUD deck/carte
-    DeckDraft.swift
-    CardDraft.swift
-    DeckEditorSheet.swift    sheet modale création/édition deck
-    CardEditorSheet.swift    sheet modale avec "Enregistrer et ajouter une autre"
-    EditorError.swift
+  Features/
+    DeleteConfirmationSheet.swift   sheet modale de confirmation delete (cascade deck → cartes)
+    Editor/                         CRUD deck/carte
+      DeckDraft.swift
+      CardDraft.swift
+      DeckEditorSheet.swift    sheet modale création/édition deck
+      CardEditorSheet.swift    sheet modale avec "Enregistrer et ajouter une autre"
+      EditorError.swift
 
   Services/
     NotificationScheduler.swift  notifications quotidiennes
@@ -133,6 +140,10 @@ UserDefaults.standard.bool(forKey: Keys.calmMode)  // Keys est un enum privé da
 
 `ReviewSession.rate()` réappend la carte en fin de `cards` à chaque notation `.again`. Pas de cap. La carte revient jusqu'à notation "Moyen" ou "Facile" — comportement FSRS/Anki standard. `totalCount` augmente dynamiquement, ce n'est pas un bug.
 
+### Learning steps avant FSRS
+
+Les cartes nouvelles + les cartes en relearning passent par des **paliers fixes** (`AppConstants.LearningSteps.steps`) avant d'entrer en `.review` piloté par FSRS. Le palier courant vit dans `Card.learningStep: Int` (0 = premier palier, -1 = graduée). `ReviewSession.rate()` intercepte la notation avant de déléguer au scheduler. Cf [ADR-0007](docs/adr/0007-learning-steps.md).
+
 ### Design tokens
 
 Pas de couleurs hex en dur dans les vues. Utiliser `Color.bgPrimary`, `Color.gold`, `Color.goldTint`, etc. depuis `Color+Tokens.swift`.
@@ -141,7 +152,7 @@ Pas de `.system(size:)` en dur. Utiliser `Font.serif(_:)`, `Font.sans(_:)`, ou l
 
 ### UIKit Appearance
 
-Tout override UIKit global (nav bar, table view cells) est centralisé dans `Me_moireApp.init()`. Ne pas appeler `UINavigationBar.appearance()` ou `UITableViewCell.appearance()` ailleurs. `UIWindow.appearance().overrideUserInterfaceStyle` est un no-op (pas un `UI_APPEARANCE_SELECTOR`) — ne pas l'utiliser.
+Tout override UIKit global (nav bar, table view cells) est centralisé dans `MemoireApp.init()`. Ne pas appeler `UINavigationBar.appearance()` ou `UITableViewCell.appearance()` ailleurs. `UIWindow.appearance().overrideUserInterfaceStyle` est un no-op (pas un `UI_APPEARANCE_SELECTOR`) — ne pas l'utiliser.
 
 ### Édition SwiftData
 
@@ -151,16 +162,16 @@ Pour toute UI d'édition : utiliser un **draft struct** value-type (`DeckDraft`,
 
 Jamais `context.delete(model)`. Toujours :
 ```swift
-deck.isDeleted = true
+deck.isSoftDeleted = true
 deck.deletedAt = .now
 deck.syncVersion += 1
-deck.syncStatus = 3  // pendingDelete
+deck.syncStatus = SyncStatus.pendingDelete.rawValue
 ```
-Filtrage dans les vues via `.filter { !$0.isDeleted }` ou predicate SwiftData.
+Filtrage dans les vues via `.filter { !$0.isSoftDeleted }` ou predicate SwiftData. Attention : le champ s'appelle `isSoftDeleted` (et non `isDeleted`) pour ne pas shadower `PersistentModel.isDeleted` de SwiftData — shadowing qui empêchait la persistance du flag.
 
 ### Environment
 
-`AppPreferences` est accessible partout via `@Environment(\.appPreferences)` (pattern `@Entry`, défaut `.shared` pour ne jamais crasher les previews). Injection en prod dans `Me_moireApp`.
+`AppPreferences` est accessible partout via `@Environment(\.appPreferences)` (pattern `@Entry`, défaut `.shared` pour ne jamais crasher les previews). Injection en prod dans `MemoireApp`.
 
 ### Error handling
 
@@ -174,7 +185,7 @@ Jamais `try?` qui mange silencieusement. `do/catch` explicite ou `throws` propag
 
 ## État MVP + roadmap
 
-MVP livré. Prochains chantiers (V1.1) : sync Supabase, Sign in with Apple, light theme, stats avancées, modifications TDAH de FSRS (backlog-aware, variabilité).
+MVP livré — itérations post-MVP continues (soft-delete en cascade, learning steps, custom delete sheet, empty states). Prochains chantiers V1.1 : sync Supabase, Sign in with Apple, light theme, stats avancées, modifications TDAH de FSRS (backlog-aware, variabilité).
 
 ## Décisions architecturales
 
@@ -186,6 +197,7 @@ Cf dossier `docs/adr/` pour le contexte et les alternatives considérées :
 4. [ADR-0004](docs/adr/0004-draft-struct-editing.md) — Draft struct pour éditer les `@Model`
 5. [ADR-0005](docs/adr/0005-swift-fsrs-shortterm.md) — swift-fsrs avec ShortTermScheduler
 6. [ADR-0006](docs/adr/0006-apppreferences-vs-usersettings.md) — `AppPreferences` temporaire vs `UserSettings @Model`
+7. [ADR-0007](docs/adr/0007-learning-steps.md) — Learning steps app-layer avant graduation FSRS
 
 ## Documents de référence
 
