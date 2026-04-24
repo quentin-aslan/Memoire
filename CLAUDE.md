@@ -189,6 +189,12 @@ Tout commit est authoré par **Quentin Aslan `<contact@quentinaslan.com>`**. Jam
 
 Si le harness injecte `Claude` comme author (via `--author=` ou variables d'env), override avant commit ou amend avec `git commit --amend --no-edit --reset-author`. Vérifier après chaque commit avec `git log -1 --pretty=format:"%an <%ae>"`.
 
+**Messages : une seule ligne, explicite, simple.** Format : `type(scope?): verbe à l'impératif objet concret`. Pas de body, pas de liste à puces, pas d'explication du "pourquoi" — ça va dans la PR ou le code. Le scope est optionnel.
+
+Exemples ✓ : `feat: export/import JSON backup (dev-only)` · `fix(editor): only validate segment dots on defocus` · `refactor: drop quick-add bar hidden by keyboard`
+
+Exemples ✗ : `fix(backup): include backDrawing + MainActor + fileImporter single URL\n\n- …\n- …\n- …` (trop long, bullets inutiles) · `chore: update stuff` (vide de sens).
+
 ## État MVP + roadmap
 
 MVP livré — itérations post-MVP continues (soft-delete en cascade, learning steps, custom delete sheet, empty states). Prochains chantiers V1.1 : sync Supabase, Sign in with Apple, light theme, stats avancées, modifications TDAH de FSRS (backlog-aware, variabilité).

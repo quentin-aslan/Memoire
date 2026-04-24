@@ -29,6 +29,7 @@ struct CardSnapshot: Codable {
     let deckID: UUID
     let front: String
     let back: String
+    let backDrawing: Data?
     let createdAt: Date
     let fsrsDifficulty: Double
     let fsrsStability: Double
@@ -76,6 +77,7 @@ enum BackupError: LocalizedError {
 
 // MARK: - Service
 
+@MainActor
 enum BackupService {
     private static let logger = Logger(
         subsystem: AppConstants.Logging.subsystem,
@@ -241,6 +243,7 @@ private extension CardSnapshot {
         self.deckID = deckID
         self.front = card.front
         self.back = card.back
+        self.backDrawing = card.backDrawing
         self.createdAt = card.createdAt
         self.fsrsDifficulty = card.fsrsDifficulty
         self.fsrsStability = card.fsrsStability
@@ -259,6 +262,7 @@ private extension CardSnapshot {
             id: id,
             front: front,
             back: back,
+            backDrawing: backDrawing,
             deck: deck,
             createdAt: createdAt,
             fsrsDifficulty: fsrsDifficulty,

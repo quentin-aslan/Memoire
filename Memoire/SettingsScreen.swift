@@ -212,10 +212,9 @@ struct SettingsScreen: View {
         }
     }
 
-    private func handleImportResult(_ result: Result<[URL], Error>) {
+    private func handleImportResult(_ result: Result<URL, Error>) {
         switch result {
-        case .success(let urls):
-            guard let url = urls.first else { return }
+        case .success(let url):
             importBackup(from: url)
         case .failure(let error):
             Self.debugLogger.info("Import dismissed: \(error.localizedDescription)")
