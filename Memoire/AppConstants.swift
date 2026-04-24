@@ -22,6 +22,14 @@ enum AppConstants {
         // Thresholds for the Facile / Moyenne / Difficile labels in CardDetailScreen
         static let easyDifficultyThreshold: Double   = 4.0
         static let mediumDifficultyThreshold: Double = 7.0
+
+        // TDAH: prior honnête pour estimer la durée d'une session. 8-12 s/carte en
+        // steady-state, on vise 12 pour sous-promettre (évite la honte quand on déborde).
+        static let avgSecondsPerCard: Double = 12
+    }
+
+    enum User {
+        static let firstNameMaxLength = 20
     }
 
     enum Onboarding {
