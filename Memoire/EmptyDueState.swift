@@ -3,6 +3,7 @@ import SwiftUI
 struct EmptyDueState: View {
     let regularityDays: Int
     var hasPendingToday: Bool = false
+    var nextDueDate: Date? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,8 +36,49 @@ struct EmptyDueState: View {
 
             regularityPill
                 .padding(.top, 24)
+
+            if let hint = nextReviewHint {
+                Text(hint)
+                    .font(.sans(13))
+                    .foregroundStyle(Color.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 12)
+                    .padding(.horizontal, 24)
+            }
         }
         .padding(.top, 56)
+    }
+
+    private var nextReviewHint: String? {
+        guard let date = nextDueDate else { return nil }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        let target = calendar.startOfDay(for: date)
+        guard let days = calendar.dateComponents([.day], from: today, to: target).day, days >= 1 else {
+            return nil
+        }
+
+        switch days {
+        case 1:
+            return "Prochaine révision demain."
+        case 7:
+            return "Prochaine révision dans une semaine."
+        case 2...14:
+            return "Prochaine révision dans \(days) jours."
+        default:
+            return "Prochaine révision le \(Self.shortDate(date))."
+        }
+    }
+
+    private static let shortDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "fr_FR")
+        f.dateFormat = "d MMMM"
+        return f
+    }()
+
+    private static func shortDate(_ date: Date) -> String {
+        shortDateFormatter.string(from: date)
     }
 
     private var checkCircle: some View {
@@ -80,6 +122,9 @@ struct EmptyDueState: View {
 #Preview {
     ZStack {
         Color.bgPrimary.ignoresSafeArea()
-        EmptyDueState(regularityDays: 7)
+        EmptyDueState(
+            regularityDays: 7,
+            nextDueDate: Calendar.current.date(byAdding: .day, value: 1, to: .now)
+        )
     }
 }
