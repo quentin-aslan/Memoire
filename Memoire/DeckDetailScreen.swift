@@ -145,11 +145,18 @@ struct DeckDetailScreen: View {
 
     private func cardRow(_ card: Card) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(card.front)
-                .font(.serif(17, weight: .regular))
-                .foregroundStyle(Color.textReading)
-                .multilineTextAlignment(.leading)
-                .lineLimit(2)
+            HStack(alignment: .top, spacing: 8) {
+                Text(card.front)
+                    .font(.serif(17, weight: .regular))
+                    .foregroundStyle(Color.textReading)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if card.hasBackDrawing {
+                    drawingBadge
+                }
+            }
 
             HStack(spacing: 6) {
                 Circle()
@@ -164,6 +171,21 @@ struct DeckDetailScreen: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 6)
+    }
+
+    private var drawingBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "pencil.tip")
+                .font(.system(size: 10, weight: .semibold))
+            Text("Dessin")
+                .font(.sans(10, weight: .semibold))
+                .tracking(0.4)
+        }
+        .foregroundStyle(Color.gold)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.goldTint, in: .capsule)
+        .accessibilityLabel("Réponse dessinée")
     }
 
     private func statusColor(for card: Card) -> Color {

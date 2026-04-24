@@ -47,6 +47,19 @@ struct CardDetailScreen: View {
 
             sectionKicker("RÉPONSE")
 
+            backContentView
+        }
+    }
+
+    @ViewBuilder
+    private var backContentView: some View {
+        if let drawingData = card.backDrawing, !drawingData.isEmpty {
+            DrawingDisplay(data: drawingData)
+                .frame(maxWidth: .infinity)
+                .frame(height: 260)
+                .padding(16)
+                .background(Color.bgCard, in: .rect(cornerRadius: 16))
+        } else {
             Text(card.back)
                 .font(.serif(18, weight: .regular))
                 .foregroundStyle(Color.textSecondary)

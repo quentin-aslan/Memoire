@@ -6,6 +6,8 @@ final class Card {
     @Attribute(.unique) var id: UUID
     var front: String
     var back: String
+    // Serialized PKDrawing for the back side. When non-nil, takes precedence over `back` text.
+    var backDrawing: Data?
     var createdAt: Date
 
     var deck: Deck?
@@ -33,6 +35,7 @@ final class Card {
         id: UUID = UUID(),
         front: String,
         back: String,
+        backDrawing: Data? = nil,
         deck: Deck? = nil,
         createdAt: Date = .now,
         fsrsDifficulty: Double = 5.0,
@@ -51,6 +54,7 @@ final class Card {
         self.id = id
         self.front = front
         self.back = back
+        self.backDrawing = backDrawing
         self.deck = deck
         self.createdAt = createdAt
         self.fsrsDifficulty = fsrsDifficulty
@@ -65,5 +69,12 @@ final class Card {
         self.deletedAt = deletedAt
         self.syncVersion = syncVersion
         self.syncStatus = syncStatus
+    }
+}
+
+extension Card {
+    var hasBackDrawing: Bool {
+        guard let data = backDrawing else { return false }
+        return !data.isEmpty
     }
 }

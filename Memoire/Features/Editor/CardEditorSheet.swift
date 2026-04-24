@@ -14,6 +14,7 @@ struct CardEditorSheet: View {
     @State private var activeSegment: Segment = .question
     @State private var deckColor: String = Color.goldHex
     @State private var deckName: String = ""
+    @State private var showClearConfirm: Bool = false
 
     private let allowsQuickAdd: Bool
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "CardEditor")
@@ -24,6 +25,9 @@ struct CardEditorSheet: View {
     init(initialDraft: CardDraft) {
         _draft = State(initialValue: initialDraft)
         self.allowsQuickAdd = !initialDraft.isEditing
+        if initialDraft.isEditing, initialDraft.backMode == .drawing {
+            _activeSegment = State(initialValue: .answer)
+        }
     }
 
     var body: some View {
@@ -38,6 +42,10 @@ struct CardEditorSheet: View {
                     .padding(.top, allowsQuickAdd ? 20 : 8)
                     .padding(.horizontal, 20)
 
+                backModeToggle
+                    .padding(.top, 12)
+                    .padding(.horizontal, 20)
+
                 contentArea
                     .padding(.top, 16)
                     .padding(.horizontal, 20)
@@ -46,7 +54,9 @@ struct CardEditorSheet: View {
                     .padding(.top, 12)
                     .padding(.horizontal, 20)
 
-                Spacer()
+                if !(activeSegment == .answer && draft.backMode == .drawing) {
+                    Spacer(minLength: 0)
+                }
             }
             .background(Color.bgPrimary)
             .toolbar {
@@ -78,6 +88,14 @@ struct CardEditorSheet: View {
             .alert(item: $error) { err in
                 Alert(title: Text("Erreur"), message: Text(err.errorDescription ?? ""))
             }
+            .confirmationDialog(
+                "Effacer le dessin ?",
+                isPresented: $showClearConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Effacer", role: .destructive) { draft.backDrawing = nil }
+                Button("Annuler", role: .cancel) {}
+            }
             .sensoryFeedback(.success, trigger: savedCounter)
         }
         .presentationDetents([.large])
@@ -85,7 +103,7 @@ struct CardEditorSheet: View {
         .task {
             await loadDeckInfo()
             try? await Task.sleep(for: .milliseconds(250))
-            focusedField = .front
+            focusInitialField()
         }
     }
 
@@ -117,23 +135,28 @@ struct CardEditorSheet: View {
 
     private var segmentedPicker: some View {
         HStack(spacing: 4) {
-            segmentButton(.question, label: "Question", content: draft.trimmedFront)
-            segmentButton(.answer, label: "Réponse", content: draft.trimmedBack)
+            segmentButton(.question, label: "Question", filled: !draft.trimmedFront.isEmpty)
+            segmentButton(.answer, label: "Réponse", filled: backSegmentFilled)
         }
         .padding(4)
         .background(Color.bgCard, in: .rect(cornerRadius: 12))
     }
 
-    private func segmentButton(_ segment: Segment, label: String, content: String) -> some View {
+    private var backSegmentFilled: Bool {
+        switch draft.backMode {
+        case .text:    return !draft.trimmedBack.isEmpty
+        case .drawing: return draft.hasBackDrawing
+        }
+    }
+
+    private func segmentButton(_ segment: Segment, label: String, filled: Bool) -> some View {
         let isActive = activeSegment == segment
-        let isFilled = !content.isEmpty
         return Button {
-            withAnimation(.easeInOut(duration: 0.2)) { activeSegment = segment }
-            focusedField = segment == .question ? .front : .back
+            switchSegment(to: segment)
         } label: {
             HStack(spacing: 6) {
                 Circle()
-                    .fill(isFilled ? Color.stateEasy : Color.white.opacity(0.15))
+                    .fill(filled ? Color.stateEasy : Color.white.opacity(0.15))
                     .frame(width: 6, height: 6)
                 Text(label)
                     .font(.sans(14, weight: isActive ? .semibold : .regular))
@@ -150,7 +173,52 @@ struct CardEditorSheet: View {
         .animation(.easeInOut(duration: 0.2), value: activeSegment)
     }
 
+    @ViewBuilder
+    private var backModeToggle: some View {
+        if activeSegment == .answer {
+            HStack(spacing: 4) {
+                modeButton(.text, label: "Texte", glyph: "textformat")
+                modeButton(.drawing, label: "Dessin", glyph: "pencil.tip")
+            }
+            .padding(4)
+            .background(Color.bgCard, in: .rect(cornerRadius: 10))
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+
+    private func modeButton(_ mode: BackMode, label: String, glyph: String) -> some View {
+        let isActive = draft.backMode == mode
+        return Button {
+            switchBackMode(to: mode)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: glyph)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(label)
+                    .font(.sans(13, weight: isActive ? .semibold : .regular))
+            }
+            .foregroundStyle(isActive ? Color.gold : Color.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                isActive ? Color.surfaceElevated : Color.clear,
+                in: .rect(cornerRadius: 7)
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.2), value: draft.backMode)
+    }
+
+    @ViewBuilder
     private var contentArea: some View {
+        if activeSegment == .answer && draft.backMode == .drawing {
+            drawingArea
+        } else {
+            textArea
+        }
+    }
+
+    private var textArea: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.bgCard)
@@ -184,6 +252,55 @@ struct CardEditorSheet: View {
         .frame(minHeight: 160)
     }
 
+    private var drawingArea: some View {
+        ZStack(alignment: .topTrailing) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.surfaceElevated)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                )
+
+            DrawingCanvas(
+                data: $draft.backDrawing,
+                isActive: activeSegment == .answer && draft.backMode == .drawing
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+
+            if !draft.hasBackDrawing {
+                VStack(spacing: 8) {
+                    Image(systemName: "scribble.variable")
+                        .font(.system(size: 28, weight: .regular))
+                        .foregroundStyle(Color.textTertiary)
+                    Text("Dessinez votre réponse")
+                        .font(.serif(16))
+                        .foregroundStyle(Color.textTertiary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .allowsHitTesting(false)
+            }
+
+            if draft.hasBackDrawing {
+                Button {
+                    showClearConfirm = true
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                        .frame(width: 36, height: 36)
+                        .background(Color.bgCard.opacity(0.9), in: .circle)
+                        .overlay(
+                            Circle().strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
+                        )
+                }
+                .padding(12)
+                .accessibilityLabel("Effacer le dessin")
+            }
+        }
+        .frame(minHeight: 320)
+        .frame(maxHeight: .infinity)
+    }
+
     private var progressBar: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
@@ -191,8 +308,8 @@ struct CardEditorSheet: View {
                     .fill(Color.white.opacity(0.08))
                     .frame(height: 2)
 
-                let bothFilled = !draft.trimmedFront.isEmpty && !draft.trimmedBack.isEmpty
                 let frontFilled = !draft.trimmedFront.isEmpty
+                let bothFilled = frontFilled && backSegmentFilled
                 let progress: CGFloat = bothFilled ? 1.0 : (frontFilled ? 0.5 : 0)
                 let barColor: Color = bothFilled ? .stateEasy : .gold
 
@@ -227,6 +344,33 @@ struct CardEditorSheet: View {
         .background(Color.bgPrimary)
     }
 
+    private func switchSegment(to segment: Segment) {
+        withAnimation(.easeInOut(duration: 0.2)) { activeSegment = segment }
+        focusFieldForCurrentState()
+    }
+
+    private func switchBackMode(to mode: BackMode) {
+        guard draft.backMode != mode else { return }
+        withAnimation(.easeInOut(duration: 0.2)) { draft.backMode = mode }
+        focusFieldForCurrentState()
+    }
+
+    private func focusInitialField() {
+        if activeSegment == .answer, draft.backMode == .drawing {
+            focusedField = nil
+        } else {
+            focusedField = activeSegment == .question ? .front : .back
+        }
+    }
+
+    private func focusFieldForCurrentState() {
+        if activeSegment == .answer, draft.backMode == .drawing {
+            focusedField = nil  // let the drawing canvas take over
+        } else {
+            focusedField = activeSegment == .question ? .front : .back
+        }
+    }
+
     private func loadDeckInfo() async {
         let deckID = draft.deckID
         let descriptor = FetchDescriptor<Deck>(predicate: #Predicate { $0.id == deckID })
@@ -254,6 +398,11 @@ struct CardEditorSheet: View {
                 return
             }
 
+            // Exclusive back content: only the active mode is persisted. Clearing the other
+            // field avoids stale data when toggling back and forth in the editor.
+            let persistedBackText: String = draft.backMode == .text ? draft.trimmedBack : ""
+            let persistedBackDrawing: Data? = draft.backMode == .drawing ? draft.backDrawing : nil
+
             if let existingID = draft.existingID {
                 let cardDescriptor = FetchDescriptor<Card>(predicate: #Predicate { $0.id == existingID })
                 guard let card = try context.fetch(cardDescriptor).first else {
@@ -261,13 +410,15 @@ struct CardEditorSheet: View {
                     return
                 }
                 card.front = draft.trimmedFront
-                card.back = draft.trimmedBack
+                card.back = persistedBackText
+                card.backDrawing = persistedBackDrawing
                 card.syncVersion += 1
                 card.syncStatus = SyncStatus.pendingUpdate.rawValue
             } else {
                 let card = Card(
                     front: draft.trimmedFront,
-                    back: draft.trimmedBack,
+                    back: persistedBackText,
+                    backDrawing: persistedBackDrawing,
                     deck: deck,
                     nextReviewDate: .now,
                     syncStatus: SyncStatus.pendingCreate.rawValue

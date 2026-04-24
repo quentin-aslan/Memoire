@@ -91,15 +91,15 @@ struct ReviewScreen: View {
     @ViewBuilder
     private func cardView(card: Card) -> some View {
         if reduceMotion {
-            cardFace(text: session.flipped ? card.back : card.front, showLabel: !session.flipped)
+            cardFace(card: card, side: session.flipped ? .back : .front)
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.3), value: session.flipped)
         } else {
             ZStack {
-                cardFace(text: card.front, showLabel: true)
+                cardFace(card: card, side: .front)
                     .opacity(session.flipped ? 0 : 1)
 
-                cardFace(text: card.back, showLabel: false)
+                cardFace(card: card, side: .back)
                     .opacity(session.flipped ? 1 : 0)
                     .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
             }
@@ -112,19 +112,18 @@ struct ReviewScreen: View {
         }
     }
 
-    private func cardFace(text: String, showLabel: Bool) -> some View {
+    private enum CardSide { case front, back }
+
+    @ViewBuilder
+    private func cardFace(card: Card, side: CardSide) -> some View {
         VStack(spacing: 22) {
             Spacer(minLength: 0)
 
-            Text(text)
-                .font(.serif(28, weight: .regular))
-                .foregroundStyle(Color.textReading)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+            cardFaceContent(card: card, side: side)
 
             Spacer(minLength: 0)
 
-            if showLabel {
+            if side == .front {
                 HStack(spacing: 6) {
                     Circle()
                         .fill(Color.gold)
@@ -144,6 +143,21 @@ struct ReviewScreen: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.goldSubtle, lineWidth: 0.5)
         )
+    }
+
+    @ViewBuilder
+    private func cardFaceContent(card: Card, side: CardSide) -> some View {
+        if side == .back, let drawingData = card.backDrawing, !drawingData.isEmpty {
+            DrawingDisplay(data: drawingData)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+        } else {
+            Text(side == .front ? card.front : card.back)
+                .font(.serif(28, weight: .regular))
+                .foregroundStyle(Color.textReading)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+        }
     }
 
     @ViewBuilder
