@@ -10,7 +10,6 @@ struct CardEditorSheet: View {
     @FocusState private var focusedField: Field?
     @State private var error: EditorError?
     @State private var savedCounter: Int = 0
-    @State private var addedCount: Int = 0
     @State private var activeSegment: Segment = .question
     @State private var deckColor: String = Color.goldHex
     @State private var deckName: String = ""
@@ -21,7 +20,6 @@ struct CardEditorSheet: View {
     @State private var frontFilledSnapshot: Bool
     @State private var backFilledSnapshot: Bool
 
-    private let allowsQuickAdd: Bool
     private static let logger = Logger(subsystem: AppConstants.Logging.subsystem, category: "CardEditor")
 
     enum Field: Hashable { case front, back }
@@ -29,7 +27,6 @@ struct CardEditorSheet: View {
 
     init(initialDraft: CardDraft) {
         _draft = State(initialValue: initialDraft)
-        self.allowsQuickAdd = !initialDraft.isEditing
         if initialDraft.isEditing, initialDraft.backMode == .drawing {
             _activeSegment = State(initialValue: .answer)
         }
@@ -49,13 +46,8 @@ struct CardEditorSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if allowsQuickAdd {
-                    counterHeader
-                        .padding(.top, 8)
-                }
-
                 segmentedPicker
-                    .padding(.top, allowsQuickAdd ? 20 : 8)
+                    .padding(.top, 8)
                     .padding(.horizontal, 20)
 
                 backModeToggle
@@ -84,21 +76,9 @@ struct CardEditorSheet: View {
                     navTitle
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    if allowsQuickAdd {
-                        Button("Terminer") {
-                            if draft.isValid { save(keepOpen: false) } else { dismiss() }
-                        }
-                        .foregroundStyle(draft.isValid ? Color.gold : Color.textSecondary)
-                    } else {
-                        Button("Enregistrer") { save(keepOpen: false) }
-                            .bold()
-                            .disabled(!draft.isValid)
-                    }
-                }
-            }
-            .safeAreaInset(edge: .bottom) {
-                if allowsQuickAdd {
-                    quickAddBar
+                    Button("Enregistrer") { save() }
+                        .bold()
+                        .disabled(!draft.isValid)
                 }
             }
             .alert(item: $error) { err in
@@ -133,20 +113,6 @@ struct CardEditorSheet: View {
                 .foregroundStyle(Color.textPrimary)
                 .lineLimit(1)
         }
-    }
-
-    private var counterHeader: some View {
-        VStack(spacing: 4) {
-            Text("\(addedCount)")
-                .font(.serif(28, weight: .medium))
-                .foregroundStyle(Color.gold)
-                .contentTransition(.numericText(value: Double(addedCount)))
-            Text("cartes ajoutées")
-                .font(.sans(12))
-                .foregroundStyle(Color.textSecondary)
-        }
-        .opacity(addedCount > 0 ? 1 : 0)
-        .animation(.easeInOut, value: addedCount)
     }
 
     private var segmentedPicker: some View {
@@ -330,28 +296,6 @@ struct CardEditorSheet: View {
         .frame(height: 2)
     }
 
-    private var quickAddBar: some View {
-        Button {
-            save(keepOpen: true)
-        } label: {
-            Text("＋ Ajouter la carte")
-                .font(.uiButton)
-                .foregroundStyle(Color.bgPrimary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    draft.isValid
-                        ? LinearGradient(colors: [.goldLight, .gold], startPoint: .top, endPoint: .bottom)
-                        : LinearGradient(colors: [.gray.opacity(0.3), .gray.opacity(0.3)], startPoint: .top, endPoint: .bottom),
-                    in: .rect(cornerRadius: 14)
-                )
-        }
-        .disabled(!draft.isValid)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color.bgPrimary)
-    }
-
     private func switchSegment(to segment: Segment) {
         guard segment != activeSegment else { return }
         // Capture the leaving segment's filled state inside the same animation block as
@@ -401,7 +345,7 @@ struct CardEditorSheet: View {
         }
     }
 
-    private func save(keepOpen: Bool) {
+    private func save() {
         guard draft.isValid else {
             error = .emptyField
             return
@@ -446,19 +390,7 @@ struct CardEditorSheet: View {
 
             try context.save()
             savedCounter += 1
-
-            if keepOpen {
-                addedCount += 1
-                draft = CardDraft(deckID: deckID)
-                activeSegment = .question
-                focusedField = .front
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    frontFilledSnapshot = false
-                    backFilledSnapshot = false
-                }
-            } else {
-                dismiss()
-            }
+            dismiss()
         } catch {
             Self.logger.error("Failed to save card: \(error.localizedDescription)")
             self.error = .saveFailed(error.localizedDescription)
