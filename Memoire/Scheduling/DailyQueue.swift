@@ -58,4 +58,16 @@ enum DailyQueue {
         let priorIDs = Set(reviews.filter { $0.reviewedAt < startOfDay }.map(\.cardID))
         return todaysIDs.subtracting(priorIDs).count
     }
+
+    static func nextDueDate(
+        allCards: [Card],
+        now: Date = .now
+    ) -> Date? {
+        allCards
+            .lazy
+            .filter { !$0.isSoftDeleted }
+            .compactMap(\.nextReviewDate)
+            .filter { $0 > now }
+            .min()
+    }
 }

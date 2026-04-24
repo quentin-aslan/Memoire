@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsScreen: View {
     @Environment(\.appPreferences) private var prefs
     @Environment(\.openURL) private var openURL
+    @FocusState private var firstNameFocused: Bool
 
     private static let mailSubject = "Mémoire — Bug / Question"
 
@@ -10,6 +11,26 @@ struct SettingsScreen: View {
         @Bindable var prefs = prefs
 
         Form {
+            Section {
+                TextField("Prénom (optionnel)", text: Binding(
+                    get: { prefs.firstName ?? "" },
+                    set: { prefs.firstName = $0 }
+                ))
+                .font(.sans(15))
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .focused($firstNameFocused)
+                .submitLabel(.done)
+                .onSubmit { firstNameFocused = false }
+            } header: {
+                Text("Vous")
+                    .foregroundStyle(Color.gold)
+            } footer: {
+                Text("Utilisé pour personnaliser la salutation de l'accueil.")
+                    .font(.sans(12))
+                    .foregroundStyle(Color.textTertiary)
+            }
+
             Section {
                 Toggle(isOn: $prefs.calmMode) {
                     VStack(alignment: .leading, spacing: 2) {

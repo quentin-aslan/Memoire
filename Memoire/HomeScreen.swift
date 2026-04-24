@@ -28,7 +28,12 @@ struct HomeScreen: View {
     }
 
     private var regularity: Int { RegularityCalculator.compute(reviews: allReviews) }
+    private var regularityStreak: Int { RegularityCalculator.currentStreak(reviews: allReviews) }
     private let regularityMax: Int = AppConstants.Regularity.windowDays
+
+    private var nextDueDate: Date? {
+        DailyQueue.nextDueDate(allCards: allCards)
+    }
 
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -55,7 +60,10 @@ struct HomeScreen: View {
                     )
                     Spacer()
                 } else if cardsDue == 0 {
-                    EmptyDueState(regularityDays: regularity)
+                    EmptyDueState(
+                        regularityDays: regularity,
+                        nextDueDate: nextDueDate
+                    )
                     regularityCard
                     Spacer()
                 } else {
@@ -78,7 +86,7 @@ struct HomeScreen: View {
                 .tracking(1.6)
                 .foregroundStyle(Color.textSecondary)
 
-            Text("Bonsoir, Quentin.")
+            Text(HomeCopy.greeting(firstName: prefs.firstName))
                 .font(.serif(34, weight: .medium))
                 .foregroundStyle(Color.textPrimary)
         }
@@ -95,9 +103,9 @@ struct HomeScreen: View {
                 Text("\(cardsDue)")
                     .font(.serif(72, weight: .medium))
                     .foregroundStyle(Color.textPrimary)
-                    .contentTransition(.numericText(value: Double(cardsDue)))
+                    .contentTransition(prefs.calmMode ? .identity : .numericText(value: Double(cardsDue)))
 
-                Text("CARTES À RÉVISER")
+                Text(cardsDue == 1 ? "CARTE À RÉVISER" : "CARTES À RÉVISER")
                     .font(.sans(13))
                     .tracking(1.2)
                     .foregroundStyle(Color.textSecondary)
@@ -119,7 +127,7 @@ struct HomeScreen: View {
                     .font(.sans(16, weight: .semibold))
                     .foregroundStyle(Color.textPrimary)
 
-                Text("Sur les 30 derniers jours")
+                Text(HomeCopy.regularitySubtitle(streak: regularityStreak, windowDays: regularityMax))
                     .font(.sans(13))
                     .foregroundStyle(Color.textSecondary)
             }
@@ -144,9 +152,10 @@ struct HomeScreen: View {
     private var cta: some View {
         VStack(spacing: 12) {
             Button {
+                guard !dueCards.isEmpty else { return }
                 activeSession = ReviewSession(cards: dueCards)
             } label: {
-                Text(cardsDue > 0 ? "Commencer la révision" : "Avancer quelques cartes")
+                Text(HomeCopy.ctaLabel(cardsDue: cardsDue))
                     .font(.uiButton)
                     .foregroundStyle(Color.bgPrimary)
                     .frame(maxWidth: .infinity)
@@ -160,9 +169,8 @@ struct HomeScreen: View {
                         in: .rect(cornerRadius: 14)
                     )
             }
-            .disabled(dueCards.isEmpty)
 
-            Text(cardsDue > 0 ? "≈ 5 minutes · \(cardsDue) cartes" : "Vous pouvez vous arrêter ici.")
+            Text(HomeCopy.ctaSubtitle(cardsDue: cardsDue))
                 .font(.sans(13))
                 .foregroundStyle(Color.textSecondary)
         }

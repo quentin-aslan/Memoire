@@ -183,6 +183,12 @@ Self.logger.error("Message: \(err.localizedDescription)")
 
 Jamais `try?` qui mange silencieusement. `do/catch` explicite ou `throws` propagé.
 
+### Commits
+
+Tout commit est authoré par **Quentin Aslan `<contact@quentinaslan.com>`**. Jamais `Claude <noreply@anthropic.com>` en author, jamais `Co-Authored-By: Claude`, aucune mention de Claude / Claude Code dans les messages ou PR descriptions.
+
+Si le harness injecte `Claude` comme author (via `--author=` ou variables d'env), override avant commit ou amend avec `git commit --amend --no-edit --reset-author`. Vérifier après chaque commit avec `git log -1 --pretty=format:"%an <%ae>"`.
+
 ## État MVP + roadmap
 
 MVP livré — itérations post-MVP continues (soft-delete en cascade, learning steps, custom delete sheet, empty states). Prochains chantiers V1.1 : sync Supabase, Sign in with Apple, light theme, stats avancées, modifications TDAH de FSRS (backlog-aware, variabilité).
@@ -198,6 +204,7 @@ Cf dossier `docs/adr/` pour le contexte et les alternatives considérées :
 5. [ADR-0005](docs/adr/0005-swift-fsrs-shortterm.md) — swift-fsrs avec ShortTermScheduler
 6. [ADR-0006](docs/adr/0006-apppreferences-vs-usersettings.md) — `AppPreferences` temporaire vs `UserSettings @Model`
 7. [ADR-0007](docs/adr/0007-learning-steps.md) — Learning steps app-layer avant graduation FSRS
+8. [ADR-0008](docs/adr/0008-home-ux-tdah-pass.md) — Passe UX/TDAH sur l'Accueil (salut dynamique, estimation honnête, streak anti-flicker, garde-fou nuit)
 
 ## Documents de référence
 

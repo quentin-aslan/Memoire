@@ -3,6 +3,7 @@ import SwiftUI
 struct EmptyDueState: View {
     let regularityDays: Int
     var hasPendingToday: Bool = false
+    var nextDueDate: Date? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,6 +36,15 @@ struct EmptyDueState: View {
 
             regularityPill
                 .padding(.top, 24)
+
+            if let hint = HomeCopy.nextReviewHint(nextDueDate: nextDueDate) {
+                Text(hint)
+                    .font(.sans(13))
+                    .foregroundStyle(Color.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 12)
+                    .padding(.horizontal, 24)
+            }
         }
         .padding(.top, 56)
     }
@@ -80,6 +90,9 @@ struct EmptyDueState: View {
 #Preview {
     ZStack {
         Color.bgPrimary.ignoresSafeArea()
-        EmptyDueState(regularityDays: 7)
+        EmptyDueState(
+            regularityDays: 7,
+            nextDueDate: Calendar.current.date(byAdding: .day, value: 1, to: .now)
+        )
     }
 }
