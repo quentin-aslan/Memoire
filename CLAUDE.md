@@ -183,6 +183,12 @@ Self.logger.error("Message: \(err.localizedDescription)")
 
 Jamais `try?` qui mange silencieusement. `do/catch` explicite ou `throws` propagé.
 
+### Commits
+
+Tout commit est authoré par **Quentin Aslan `<contact@quentinaslan.com>`**. Jamais `Claude <noreply@anthropic.com>` en author, jamais `Co-Authored-By: Claude`, aucune mention de Claude / Claude Code dans les messages ou PR descriptions.
+
+Si le harness injecte `Claude` comme author (via `--author=` ou variables d'env), override avant commit ou amend avec `git commit --amend --no-edit --reset-author`. Vérifier après chaque commit avec `git log -1 --pretty=format:"%an <%ae>"`.
+
 ## État MVP + roadmap
 
 MVP livré — itérations post-MVP continues (soft-delete en cascade, learning steps, custom delete sheet, empty states). Prochains chantiers V1.1 : sync Supabase, Sign in with Apple, light theme, stats avancées, modifications TDAH de FSRS (backlog-aware, variabilité).
