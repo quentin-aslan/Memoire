@@ -67,15 +67,33 @@ l'hyperfocus nocturne qui se paie cher au réveil.
 - On garde le nom-mené : `"12"` suivi de `"CARTES À RÉVISER"` ancre le sens.
   `"À REVOIR AUJOURD'HUI"` considéré puis rejeté (ambigu : "12 quoi ?").
 
-### H4 — CTA « Avancer » (`HomeScreen.ctaLabel`)
+### H4 — CTA « Réviser » (`HomeCopy.ctaLabel`)
 
-- `cardsDue == 1` → `"Avancer d'une carte"`
-- `2…5` → `"Avancer de \(n) cartes"`
-- `> 5` → `"Avancer"` (le compte reste visible dans le sous-titre H2)
+- `cardsDue == 1` → `"Réviser une carte"`
+- `2…5` → `"Réviser \(n) cartes"`
+- `> 5` → `"Réviser"` (le compte reste visible dans le sous-titre H2)
 
-**Pourquoi TDAH** : "Avancer" est un verbe low-commitment, forward-motion.
-La portée finie (1, 3, 5) aide au démarrage ; au-delà de 5 on préserve la
-largeur du bouton tout en gardant le compte une ligne en-dessous.
+**Pourquoi TDAH** : deux itérations ici. Première tentative = `"Avancer"`,
+reframing dopaminergique / forward-motion. Deuxième passe après revue UX
+indépendante : switch vers `"Réviser"`.
+
+Arguments qui ont fait basculer :
+1. **Cohérence label→CTA** : le label du ring dit déjà `"CARTES À RÉVISER"`.
+   Reprendre le même verbe élimine la micro-traduction mentale `"avancer → ah
+   oui les cartes"` (× 365 ouvertures/an).
+2. **Charge morale cachée** : en français, "avancer" porte `"avance dans la
+   vie"`, `"faut avancer"` — registre subtilement culpabilisant, casse
+   l'intention anti-shaming.
+3. **Prévisibilité TDAH** : la littérature task-initiation (Ladder Method,
+   Tiimo) pointe que le frein n'est pas le *nom* de la tâche mais le flou
+   sur ce qui va se passer. `"Réviser"` est précis, `"Avancer"` est générique.
+   Le sous-titre `"≈ 5 minutes"` gère déjà l'activation energy.
+4. **Registre dark luxury** : `"Réviser"` est sobre, sérieux, aligné typo
+   serif. `"Avancer"` sonne coach de vie générique.
+
+Alternatives rejetées : `"Commencer"` (faux en jour 2+), `"Continuer"`
+(présume un état en cours), `"On y va"` / `"C'est parti"` (infantilisant,
+casse le dark luxury), `"Poursuivre"` (défendable mais moins précis).
 
 ### M1 — Indice prochaine révision (`EmptyDueState.nextReviewHint`)
 

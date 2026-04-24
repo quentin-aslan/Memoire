@@ -24,9 +24,9 @@ enum HomeCopy {
 
     static func ctaLabel(cardsDue: Int) -> String {
         switch cardsDue {
-        case 1:     return "Avancer d'une carte"
-        case 2...5: return "Avancer de \(cardsDue) cartes"
-        default:    return "Avancer"
+        case 1:     return "Réviser une carte"
+        case 2...5: return "Réviser \(cardsDue) cartes"
+        default:    return "Réviser"
         }
     }
 
