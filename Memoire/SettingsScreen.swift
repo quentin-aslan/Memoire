@@ -1,28 +1,24 @@
 import SwiftUI
-#if DEBUG
 import OSLog
 import SwiftData
 import UniformTypeIdentifiers
-#endif
 
 struct SettingsScreen: View {
     @Environment(\.appPreferences) private var prefs
     @Environment(\.openURL) private var openURL
-    @FocusState private var firstNameFocused: Bool
-
-    #if DEBUG
     @Environment(\.modelContext) private var modelContext
+    @FocusState private var firstNameFocused: Bool
 
     @State private var isExporting = false
     @State private var isImporting = false
     @State private var pendingExport: BackupDocument?
+    @State private var pendingImportURL: URL?
     @State private var backupAlert: String?
 
-    private static let debugLogger = Logger(
+    private static let backupLogger = Logger(
         subsystem: AppConstants.Logging.subsystem,
         category: "Settings"
     )
-    #endif
 
     private static let mailSubject = "Mémoire — Bug / Question"
 
@@ -30,42 +26,6 @@ struct SettingsScreen: View {
         @Bindable var prefs = prefs
 
         Form {
-            Section {
-                TextField("Prénom (optionnel)", text: Binding(
-                    get: { prefs.firstName ?? "" },
-                    set: { prefs.firstName = $0 }
-                ))
-                .font(.sans(15))
-                .textInputAutocapitalization(.words)
-                .autocorrectionDisabled()
-                .focused($firstNameFocused)
-                .submitLabel(.done)
-                .onSubmit { firstNameFocused = false }
-            } header: {
-                Text("Vous")
-                    .foregroundStyle(Color.gold)
-            } footer: {
-                Text("Utilisé pour personnaliser la salutation de l'accueil.")
-                    .font(.sans(12))
-                    .foregroundStyle(Color.textTertiary)
-            }
-
-            Section {
-                Toggle(isOn: $prefs.calmMode) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Mode Calme")
-                            .font(.sans(15, weight: .medium))
-                        Text("Désactive les effets translucides.")
-                            .font(.sans(12))
-                            .foregroundStyle(Color.textSecondary)
-                    }
-                }
-                .tint(.gold)
-            } header: {
-                Text("Accessibilité")
-                    .foregroundStyle(Color.gold)
-            }
-
             Section {
                 Picker("Heure du rappel", selection: $prefs.notificationHour) {
                     ForEach(6..<24, id: \.self) { hour in
@@ -88,25 +48,69 @@ struct SettingsScreen: View {
             }
 
             Section {
-                HStack {
-                    Text("Version")
-                    Spacer()
-                    Text("1.0 (MVP)")
-                        .foregroundStyle(Color.textSecondary)
+                TextField("Prénom (optionnel)", text: Binding(
+                    get: { prefs.firstName ?? "" },
+                    set: { prefs.firstName = $0 }
+                ))
+                .font(.sans(15))
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .focused($firstNameFocused)
+                .submitLabel(.done)
+                .onSubmit { firstNameFocused = false }
+
+                Toggle(isOn: $prefs.calmMode) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Mode Calme")
+                            .font(.sans(15, weight: .medium))
+                        Text("Désactive les effets translucides.")
+                            .font(.sans(12))
+                            .foregroundStyle(Color.textSecondary)
+                    }
                 }
-                HStack {
-                    Text("Développeur")
-                    Spacer()
-                    Text("Quentin Aslan")
-                        .foregroundStyle(Color.textSecondary)
-                }
+                .tint(.gold)
             } header: {
-                Text("À propos")
+                Text("Apparence & vous")
                     .foregroundStyle(Color.gold)
+            } footer: {
+                Text("Le prénom personnalise la salutation de l'accueil.")
+                    .font(.sans(12))
+                    .foregroundStyle(Color.textTertiary)
             }
 
-            if let url = supportMailURL {
-                Section {
+            Section {
+                Button {
+                    prepareExport()
+                } label: {
+                    Text("Exporter une sauvegarde")
+                }
+
+                Button {
+                    isImporting = true
+                } label: {
+                    Text("Restaurer une sauvegarde")
+                }
+            } header: {
+                Text("Sauvegarde")
+                    .foregroundStyle(Color.gold)
+            } footer: {
+                Text("Exporte un fichier JSON contenant tes paquets, cartes et historique. La restauration remplace intégralement la base actuelle.")
+                    .font(.sans(12))
+                    .foregroundStyle(Color.textTertiary)
+            }
+
+            Section {
+                HStack {
+                    Text("Mémoire 1.0")
+                    Text("·")
+                        .foregroundStyle(Color.textTertiary)
+                    Text("Quentin Aslan")
+                        .foregroundStyle(Color.textSecondary)
+                    Spacer()
+                }
+                .font(.sans(14))
+
+                if let url = supportMailURL {
                     Button {
                         openURL(url)
                     } label: {
@@ -116,32 +120,25 @@ struct SettingsScreen: View {
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                 }
-                .listSectionSpacing(.compact)
+            } header: {
+                Text("À propos")
+                    .foregroundStyle(Color.gold)
             }
 
             #if DEBUG
             Section {
-                Button {
-                    prefs.hasOnboarded = false
+                DisclosureGroup {
+                    Button {
+                        prefs.hasOnboarded = false
+                    } label: {
+                        Text("Rejouer l'onboarding")
+                            .foregroundStyle(Color.stateAgain)
+                    }
                 } label: {
-                    Text("Rejouer l'onboarding")
-                        .foregroundStyle(Color.stateAgain)
+                    Text("Avancé")
+                        .font(.sans(15, weight: .medium))
+                        .foregroundStyle(Color.gold)
                 }
-
-                Button {
-                    prepareExport()
-                } label: {
-                    Text("Exporter la base (dev)")
-                }
-
-                Button {
-                    isImporting = true
-                } label: {
-                    Text("Importer une base (dev)")
-                }
-            } header: {
-                Text("Debug")
-                    .foregroundStyle(Color.gold)
             }
             #endif
         }
@@ -149,7 +146,6 @@ struct SettingsScreen: View {
         .background(Color.bgPrimary)
         .navigationTitle("Réglages")
         .navigationBarTitleDisplayMode(.inline)
-        #if DEBUG
         .fileExporter(
             isPresented: $isExporting,
             document: pendingExport,
@@ -165,6 +161,22 @@ struct SettingsScreen: View {
             handleImportResult(result)
         }
         .alert(
+            "Restaurer la sauvegarde ?",
+            isPresented: Binding(
+                get: { pendingImportURL != nil },
+                set: { if !$0 { pendingImportURL = nil } }
+            ),
+            presenting: pendingImportURL
+        ) { url in
+            Button("Annuler", role: .cancel) { pendingImportURL = nil }
+            Button("Restaurer", role: .destructive) {
+                pendingImportURL = nil
+                importBackup(from: url)
+            }
+        } message: { _ in
+            Text("Cette action remplace tous tes paquets, cartes et historique actuels. Elle est irréversible.")
+        }
+        .alert(
             "Sauvegarde",
             isPresented: Binding(
                 get: { backupAlert != nil },
@@ -176,7 +188,6 @@ struct SettingsScreen: View {
         } message: { message in
             Text(message)
         }
-        #endif
     }
 
     private var supportMailURL: URL? {
@@ -189,14 +200,13 @@ struct SettingsScreen: View {
         return components.url
     }
 
-    #if DEBUG
     private func prepareExport() {
         do {
             let data = try BackupService.export(context: modelContext)
             pendingExport = BackupDocument(data: data)
             isExporting = true
         } catch {
-            Self.debugLogger.error("Export failed: \(error.localizedDescription)")
+            Self.backupLogger.error("Export failed: \(error.localizedDescription)")
             backupAlert = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
@@ -205,19 +215,19 @@ struct SettingsScreen: View {
         pendingExport = nil
         switch result {
         case .success(let url):
-            Self.debugLogger.info("Export saved to \(url.path, privacy: .public)")
+            Self.backupLogger.info("Export saved to \(url.path, privacy: .public)")
             backupAlert = "Sauvegarde enregistrée."
         case .failure(let error):
-            Self.debugLogger.info("Export dismissed: \(error.localizedDescription)")
+            Self.backupLogger.info("Export dismissed: \(error.localizedDescription)")
         }
     }
 
     private func handleImportResult(_ result: Result<URL, Error>) {
         switch result {
         case .success(let url):
-            importBackup(from: url)
+            pendingImportURL = url
         case .failure(let error):
-            Self.debugLogger.info("Import dismissed: \(error.localizedDescription)")
+            Self.backupLogger.info("Import dismissed: \(error.localizedDescription)")
         }
     }
 
@@ -232,7 +242,7 @@ struct SettingsScreen: View {
             try BackupService.replaceAll(from: data, context: modelContext)
             backupAlert = "Import réussi."
         } catch {
-            Self.debugLogger.error("Import failed: \(error.localizedDescription)")
+            Self.backupLogger.error("Import failed: \(error.localizedDescription)")
             backupAlert = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
@@ -243,5 +253,4 @@ struct SettingsScreen: View {
         let stamp = formatter.string(from: .now).replacingOccurrences(of: ":", with: "-")
         return "memoire-backup-\(stamp).\(AppConstants.Backup.fileExtension)"
     }
-    #endif
 }
