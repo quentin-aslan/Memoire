@@ -48,16 +48,22 @@ struct SettingsScreen: View {
             }
 
             Section {
-                TextField("Prénom (optionnel)", text: Binding(
-                    get: { prefs.firstName ?? "" },
-                    set: { prefs.firstName = $0 }
-                ))
-                .font(.sans(15))
-                .textInputAutocapitalization(.words)
-                .autocorrectionDisabled()
-                .focused($firstNameFocused)
-                .submitLabel(.done)
-                .onSubmit { firstNameFocused = false }
+                VStack(alignment: .leading, spacing: 6) {
+                    TextField("Prénom (optionnel)", text: Binding(
+                        get: { prefs.firstName ?? "" },
+                        set: { prefs.firstName = $0 }
+                    ))
+                    .font(.sans(15))
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .focused($firstNameFocused)
+                    .submitLabel(.done)
+                    .onSubmit { firstNameFocused = false }
+
+                    Text("Personnalise la salutation de l'accueil.")
+                        .font(.sans(12))
+                        .foregroundStyle(Color.textTertiary)
+                }
 
                 Toggle(isOn: $prefs.calmMode) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -72,23 +78,33 @@ struct SettingsScreen: View {
             } header: {
                 Text("Apparence & vous")
                     .foregroundStyle(Color.gold)
-            } footer: {
-                Text("Le prénom personnalise la salutation de l'accueil.")
-                    .font(.sans(12))
-                    .foregroundStyle(Color.textTertiary)
             }
 
             Section {
                 Button {
                     prepareExport()
                 } label: {
-                    Text("Exporter une sauvegarde")
+                    HStack(spacing: 12) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundStyle(Color.gold)
+                            .frame(width: 24)
+                        Text("Exporter une sauvegarde")
+                            .foregroundStyle(Color.textPrimary)
+                    }
                 }
 
                 Button {
                     isImporting = true
                 } label: {
-                    Text("Restaurer une sauvegarde")
+                    HStack(spacing: 12) {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundStyle(Color.gold)
+                            .frame(width: 24)
+                        Text("Restaurer une sauvegarde")
+                            .foregroundStyle(Color.textPrimary)
+                    }
                 }
             } header: {
                 Text("Sauvegarde")
@@ -100,26 +116,31 @@ struct SettingsScreen: View {
             }
 
             Section {
-                HStack {
-                    Text("Mémoire 1.0")
-                    Text("·")
-                        .foregroundStyle(Color.textTertiary)
-                    Text("Quentin Aslan")
-                        .foregroundStyle(Color.textSecondary)
-                    Spacer()
-                }
-                .font(.sans(14))
-
                 if let url = supportMailURL {
                     Button {
                         openURL(url)
                     } label: {
-                        Text("Signaler un bug ou contacter")
+                        HStack(spacing: 12) {
+                            Image(systemName: "envelope")
+                                .font(.system(size: 17, weight: .regular))
+                                .foregroundStyle(Color.gold)
+                                .frame(width: 24)
+                            Text("Contacter ou signaler un bug")
+                                .foregroundStyle(Color.textPrimary)
+                        }
                     }
-                    .buttonStyle(.primary)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                    .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
                 }
+
+                HStack(spacing: 6) {
+                    Text("Mémoire 1.0")
+                        .foregroundStyle(Color.textSecondary)
+                    Text("·")
+                        .foregroundStyle(Color.textTertiary)
+                    Text("Quentin Aslan")
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .font(.sans(14))
             } header: {
                 Text("À propos")
                     .foregroundStyle(Color.gold)
