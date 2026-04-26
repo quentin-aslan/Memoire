@@ -80,13 +80,18 @@ struct HomeScreen: View {
         }
         .onAppear { consumeWidgetAction() }
         .onChange(of: widgetLaunch.pendingAction) { _, _ in consumeWidgetAction() }
+        // @Query hydrates after the deep-link arrives; re-try once cards land.
+        .onChange(of: cardsDue) { _, _ in consumeWidgetAction() }
     }
 
     // Triggered when the user taps the widget in state A — opens the review
     // session directly rather than dropping them on the Home tab CTA.
+    // Uses peek/clear so the action survives @Query hydration; we only clear
+    // once we've actually started the session.
     private func consumeWidgetAction() {
-        guard widgetLaunch.consume() == .startReview, !dueCards.isEmpty else { return }
+        guard widgetLaunch.peek() == .startReview, !dueCards.isEmpty else { return }
         activeSession = ReviewSession(cards: dueCards)
+        widgetLaunch.clear()
     }
 
     private var header: some View {

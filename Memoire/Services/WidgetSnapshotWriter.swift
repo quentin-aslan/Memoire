@@ -25,12 +25,30 @@ enum WidgetSnapshotWriter {
         let now = Date.now
         let calendar = Calendar.current
 
-        let cards = (try? context.fetch(FetchDescriptor<Card>())) ?? []
-        let reviews = (try? context.fetch(FetchDescriptor<Review>())) ?? []
-        let decks = (try? context.fetch(FetchDescriptor<Deck>())) ?? []
+        // Push the soft-delete filter into the descriptor so we don't drag dead
+        // rows into memory at scale. CLAUDE.md bans silent `try?` swallow.
+        let activeCardsDescriptor = FetchDescriptor<Card>(
+            predicate: #Predicate { !$0.isSoftDeleted }
+        )
+        let activeDecksDescriptor = FetchDescriptor<Deck>(
+            predicate: #Predicate { !$0.isSoftDeleted }
+        )
 
-        let activeDecks = decks.filter { !$0.isSoftDeleted }
-        let activeCards = cards.filter { !$0.isSoftDeleted }
+        let activeCards: [Card]
+        let activeDecks: [Deck]
+        let reviews: [Review]
+        do {
+            activeCards = try context.fetch(activeCardsDescriptor)
+            activeDecks = try context.fetch(activeDecksDescriptor)
+            reviews = try context.fetch(FetchDescriptor<Review>())
+        } catch {
+            logger.error("Snapshot fetch failed: \(error.localizedDescription)")
+            return WidgetSnapshot(
+                hasAnyDeck: false, dueNow: 0, reviewedToday: 0, totalToday: 0,
+                nextDueDate: nil, laterTodayCount: 0, streakDays: 0,
+                generatedAt: now, schemaVersion: WidgetSnapshot.currentSchemaVersion
+            )
+        }
 
         // Same predicate as DailyQueue.build → widget and Home never disagree
         let dueNonNew = activeCards.filter { card in
