@@ -54,10 +54,11 @@ struct MemoireApp: App {
                 .environment(\.widgetLaunch, widgetLaunch)
                 .preferredColorScheme(.dark)
                 .onChange(of: scenePhase) { _, newPhase in
-                    // Refresh the widget snapshot when the app loses focus —
-                    // covers backgrounding AND lock screen, which is when the
-                    // user is most likely to glance at the widget.
-                    guard newPhase == .inactive || newPhase == .background else { return }
+                    // Only on `.background` — `.inactive` fires on every brief
+                    // interruption (Control Center pull, banner pull-down,
+                    // screenshots), which would re-fetch all SwiftData rows
+                    // dozens of times per session for no benefit.
+                    guard newPhase == .background else { return }
                     WidgetSnapshotWriter.refresh(context: container.mainContext, prefs: prefs)
                 }
         }
