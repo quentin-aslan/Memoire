@@ -48,4 +48,17 @@ enum AppConstants {
         static let currentSchemaVersion = 1
         static let fileExtension = "memoire.json"
     }
+
+    enum Widget {
+        static let appGroupID = "group.com.quentinaslan.Memoire"
+        static let snapshotFile = "widget-snapshot.json"
+        static let kind = "MemoireWidget"
+    }
+
+    enum DeepLinks {
+        static let scheme = "memoire"
+        static let review = URL(string: "\(scheme)://review")!
+        static let home = URL(string: "\(scheme)://home")!
+        static let newDeck = URL(string: "\(scheme)://decks/new")!
+    }
 }

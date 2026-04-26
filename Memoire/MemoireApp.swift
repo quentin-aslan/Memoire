@@ -12,6 +12,8 @@ import SwiftUI
 struct MemoireApp: App {
     @State private var prefs = AppPreferences()
     @State private var deckCreation = DeckCreationCoordinator()
+    @State private var widgetLaunch = WidgetLaunchCoordinator()
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let bgPrimary   = UIColor(red: 0x1C/255, green: 0x1C/255, blue: 0x1E/255, alpha: 1)
@@ -49,7 +51,15 @@ struct MemoireApp: App {
             RootView()
                 .environment(\.appPreferences, prefs)
                 .environment(\.deckCreation, deckCreation)
+                .environment(\.widgetLaunch, widgetLaunch)
                 .preferredColorScheme(.dark)
+                .onChange(of: scenePhase) { _, newPhase in
+                    // Refresh the widget snapshot when the app loses focus —
+                    // covers backgrounding AND lock screen, which is when the
+                    // user is most likely to glance at the widget.
+                    guard newPhase == .inactive || newPhase == .background else { return }
+                    WidgetSnapshotWriter.refresh(context: container.mainContext, prefs: prefs)
+                }
         }
         .modelContainer(container)
     }
