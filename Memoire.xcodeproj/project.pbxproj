@@ -8,16 +8,78 @@
 
 /* Begin PBXBuildFile section */
 		936192B12F939F0B00B123A5 /* SwiftFSRS in Frameworks */ = {isa = PBXBuildFile; productRef = 936192B02F939F0B00B123A5 /* SwiftFSRS */; };
+		93B37D382F9E676B0000089A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93B37D372F9E676B0000089A /* WidgetKit.framework */; };
+		93B37D3A2F9E676B0000089A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93B37D392F9E676B0000089A /* SwiftUI.framework */; };
+		93B37D472F9E676D0000089A /* MemoireWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 93B37D352F9E676B0000089A /* MemoireWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		93B37D452F9E676D0000089A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 93A69E182F9364C500C71556 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 93B37D342F9E676B0000089A;
+			remoteInfo = MemoireWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		93B37D482F9E676D0000089A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				93B37D472F9E676D0000089A /* MemoireWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		93A69E202F9364C500C71556 /* Memoire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Memoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		93B37D352F9E676B0000089A /* MemoireWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MemoireWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		93B37D372F9E676B0000089A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		93B37D392F9E676B0000089A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		93B37D6A2F9E6A260000089A /* MemoireWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MemoireWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		93B37D4B2F9E676D0000089A /* Exceptions for "MemoireWidget" folder in "MemoireWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 93B37D342F9E676B0000089A /* MemoireWidgetExtension */;
+		};
+		93B37D662F9E68F10000089A /* Exceptions for "Memoire" folder in "MemoireWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AppConstants.swift,
+				"Color+Tokens.swift",
+				Shared/WidgetSnapshot.swift,
+				Typography.swift,
+			);
+			target = 93B37D342F9E676B0000089A /* MemoireWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		93A69E222F9364C500C71556 /* Mémoire */ = {
+		93A69E222F9364C500C71556 /* Memoire */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				93B37D662F9E68F10000089A /* Exceptions for "Memoire" folder in "MemoireWidgetExtension" target */,
+			);
 			path = Memoire;
+			sourceTree = "<group>";
+		};
+		93B37D3B2F9E676B0000089A /* MemoireWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				93B37D4B2F9E676D0000089A /* Exceptions for "MemoireWidget" folder in "MemoireWidgetExtension" target */,
+			);
+			path = MemoireWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -31,13 +93,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		93B37D322F9E676B0000089A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				93B37D3A2F9E676B0000089A /* SwiftUI.framework in Frameworks */,
+				93B37D382F9E676B0000089A /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		93A69E172F9364C500C71556 = {
 			isa = PBXGroup;
 			children = (
-				93A69E222F9364C500C71556 /* Mémoire */,
+				93B37D6A2F9E6A260000089A /* MemoireWidgetExtension.entitlements */,
+				93A69E222F9364C500C71556 /* Memoire */,
+				93B37D3B2F9E676B0000089A /* MemoireWidget */,
+				93B37D362F9E676B0000089A /* Frameworks */,
 				93A69E212F9364C500C71556 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -46,8 +120,18 @@
 			isa = PBXGroup;
 			children = (
 				93A69E202F9364C500C71556 /* Memoire.app */,
+				93B37D352F9E676B0000089A /* MemoireWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		93B37D362F9E676B0000089A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				93B37D372F9E676B0000089A /* WidgetKit.framework */,
+				93B37D392F9E676B0000089A /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -60,13 +144,15 @@
 				93A69E1C2F9364C500C71556 /* Sources */,
 				93A69E1D2F9364C500C71556 /* Frameworks */,
 				93A69E1E2F9364C500C71556 /* Resources */,
+				93B37D482F9E676D0000089A /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				93B37D462F9E676D0000089A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				93A69E222F9364C500C71556 /* Mémoire */,
+				93A69E222F9364C500C71556 /* Memoire */,
 			);
 			name = Memoire;
 			packageProductDependencies = (
@@ -75,6 +161,28 @@
 			productName = Memoire;
 			productReference = 93A69E202F9364C500C71556 /* Memoire.app */;
 			productType = "com.apple.product-type.application";
+		};
+		93B37D342F9E676B0000089A /* MemoireWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 93B37D4C2F9E676D0000089A /* Build configuration list for PBXNativeTarget "MemoireWidgetExtension" */;
+			buildPhases = (
+				93B37D312F9E676B0000089A /* Sources */,
+				93B37D322F9E676B0000089A /* Frameworks */,
+				93B37D332F9E676B0000089A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				93B37D3B2F9E676B0000089A /* MemoireWidget */,
+			);
+			name = MemoireWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = MemoireWidgetExtension;
+			productReference = 93B37D352F9E676B0000089A /* MemoireWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -87,6 +195,9 @@
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					93A69E1F2F9364C500C71556 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+					93B37D342F9E676B0000089A = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
 				};
@@ -109,12 +220,20 @@
 			projectRoot = "";
 			targets = (
 				93A69E1F2F9364C500C71556 /* Memoire */,
+				93B37D342F9E676B0000089A /* MemoireWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		93A69E1E2F9364C500C71556 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		93B37D332F9E676B0000089A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -131,7 +250,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		93B37D312F9E676B0000089A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		93B37D462F9E676D0000089A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 93B37D342F9E676B0000089A /* MemoireWidgetExtension */;
+			targetProxy = 93B37D452F9E676D0000089A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		93A69E292F9364C700C71556 /* Debug */ = {
@@ -258,6 +392,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Memoire/Memoire.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 22F9GHPYS4;
@@ -274,7 +409,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.quentinaslan.memoire";
+				PRODUCT_BUNDLE_IDENTIFIER = com.quentinaslan.memoire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -291,6 +426,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Memoire/Memoire.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 22F9GHPYS4;
@@ -307,11 +443,75 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.quentinaslan.memoire";
+				PRODUCT_BUNDLE_IDENTIFIER = com.quentinaslan.memoire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		93B37D492F9E676D0000089A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MemoireWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 22F9GHPYS4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MemoireWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MemoireWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quentinaslan.memoire.MemoireWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		93B37D4A2F9E676D0000089A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MemoireWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 22F9GHPYS4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MemoireWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MemoireWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quentinaslan.memoire.MemoireWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -336,6 +536,15 @@
 			buildConfigurations = (
 				93A69E2C2F9364C700C71556 /* Debug */,
 				93A69E2D2F9364C700C71556 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		93B37D4C2F9E676D0000089A /* Build configuration list for PBXNativeTarget "MemoireWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				93B37D492F9E676D0000089A /* Debug */,
+				93B37D4A2F9E676D0000089A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
