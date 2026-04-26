@@ -16,9 +16,9 @@ final class WidgetLaunchCoordinator {
         case startReview
     }
 
-    func consume() -> Action? {
-        let action = pendingAction
-        pendingAction = nil
-        return action
-    }
+    // Read without clearing: caller may not yet be able to fulfil the action
+    // (e.g. @Query still hydrating). Pair with `clear()` once handled.
+    func peek() -> Action? { pendingAction }
+
+    func clear() { pendingAction = nil }
 }

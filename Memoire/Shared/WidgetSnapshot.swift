@@ -4,7 +4,7 @@ import OSLog
 // Single source of truth between the app (writer) and the widget (reader).
 // The struct deliberately depends only on Foundation so it can compile in
 // the widget extension without pulling SwiftData into a memory-tight process.
-struct WidgetSnapshot: Codable {
+struct WidgetSnapshot: Codable, Sendable {
     var hasAnyDeck: Bool
     var dueNow: Int
     var reviewedToday: Int
@@ -30,7 +30,15 @@ struct WidgetSnapshot: Codable {
             let data = try Data(contentsOf: url)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
-            return try decoder.decode(WidgetSnapshot.self, from: data)
+            let decoded = try decoder.decode(WidgetSnapshot.self, from: data)
+            // Schema-drift guard: an old widget binary reading a newer snapshot
+            // (or vice versa) falls through to the resolver's `.onboarding`
+            // neutral state rather than rendering stale or wrong fields.
+            guard decoded.schemaVersion == currentSchemaVersion else {
+                Self.logger.error("Snapshot schemaVersion mismatch: got \(decoded.schemaVersion), expected \(currentSchemaVersion)")
+                return nil
+            }
+            return decoded
         } catch {
             Self.logger.error("Failed to decode snapshot: \(error.localizedDescription)")
             return nil
