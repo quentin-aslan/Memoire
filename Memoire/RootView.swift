@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @Environment(\.appPreferences) private var prefs
     @Environment(\.deckCreation) private var deckCreation
+    @Environment(\.widgetLaunch) private var widgetLaunch
     @State private var selectedTab: RootTab = .home
 
     var body: some View {
@@ -23,6 +24,29 @@ struct RootView: View {
             DeckEditorSheet(initialDraft: draft, onCreated: { deck in
                 deckCreation.createdDeck = deck
             })
+        }
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == AppConstants.DeepLinks.scheme else { return }
+        switch url.host {
+        case "review":
+            selectedTab = .home
+            widgetLaunch.pendingAction = .startReview
+        case "home":
+            selectedTab = .home
+        case "decks":
+            if url.pathComponents.contains("new") {
+                selectedTab = .decks
+                deckCreation.open()
+            } else {
+                selectedTab = .decks
+            }
+        default:
+            break
         }
     }
 

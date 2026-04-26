@@ -44,6 +44,10 @@ struct ReviewScreen: View {
         .sensoryFeedback(.selection, trigger: session.flipped)
         .sensoryFeedback(.impact(weight: .light), trigger: session.currentIndex)
         .sensoryFeedback(.success, trigger: session.isComplete)
+        .onChange(of: session.isComplete) { _, isComplete in
+            guard isComplete else { return }
+            WidgetSnapshotWriter.refresh(context: context, prefs: prefs)
+        }
     }
 
     private var topBar: some View {

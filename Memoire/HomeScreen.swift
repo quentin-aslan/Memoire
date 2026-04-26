@@ -4,6 +4,7 @@ import SwiftUI
 struct HomeScreen: View {
     @Environment(\.appPreferences) private var prefs
     @Environment(\.deckCreation) private var deckCreation
+    @Environment(\.widgetLaunch) private var widgetLaunch
     @Query private var allCards: [Card]
     @Query private var allReviews: [Review]
     @State private var activeSession: ReviewSession?
@@ -77,6 +78,15 @@ struct HomeScreen: View {
         .fullScreenCover(item: $activeSession) { session in
             ReviewScreen(session: session)
         }
+        .onAppear { consumeWidgetAction() }
+        .onChange(of: widgetLaunch.pendingAction) { _, _ in consumeWidgetAction() }
+    }
+
+    // Triggered when the user taps the widget in state A — opens the review
+    // session directly rather than dropping them on the Home tab CTA.
+    private func consumeWidgetAction() {
+        guard widgetLaunch.consume() == .startReview, !dueCards.isEmpty else { return }
+        activeSession = ReviewSession(cards: dueCards)
     }
 
     private var header: some View {
