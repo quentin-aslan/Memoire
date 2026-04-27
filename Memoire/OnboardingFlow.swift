@@ -98,6 +98,9 @@ struct OnboardingFlow: View {
 }
 
 private struct WelcomePage: View {
+    @Environment(\.appPreferences) private var prefs
+    @FocusState private var nameFocused: Bool
+
     var body: some View {
         VStack(spacing: 28) {
             Spacer()
@@ -132,9 +135,39 @@ private struct WelcomePage: View {
                     .padding(.horizontal, 40)
             }
 
-            Spacer()
+            nameField
+
             Spacer()
         }
+    }
+
+    private var nameField: some View {
+        VStack(spacing: 6) {
+            TextField("Ton prénom", text: Binding(
+                get: { prefs.firstName ?? "" },
+                set: { prefs.firstName = $0 }
+            ))
+            .font(.sans(15))
+            .foregroundStyle(Color.textPrimary)
+            .textInputAutocapitalization(.words)
+            .autocorrectionDisabled()
+            .focused($nameFocused)
+            .submitLabel(.done)
+            .onSubmit { nameFocused = false }
+            .padding(18)
+            .background(Color.bgCard, in: .rect(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.goldSubtle, lineWidth: 0.5)
+            )
+
+            Text("Optionnel — pour personnaliser ta salutation.")
+                .font(.sans(12))
+                .foregroundStyle(Color.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 4)
+        }
+        .padding(.horizontal, 20)
     }
 }
 

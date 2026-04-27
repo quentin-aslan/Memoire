@@ -332,7 +332,31 @@ ET !prefs.permissionToFailToastShown
 
 ---
 
-## 13. Onboarding écran 4 — TwoWordsPage
+## 13. Onboarding écran 0 — WelcomePage (champ prénom)
+
+Source : `OnboardingFlow.WelcomePage`.
+
+### Copy
+
+```
+Placeholder TextField :  Ton prénom
+Helper text :            Optionnel — pour personnaliser ta salutation.
+```
+
+### Comportement
+
+- Champ optionnel — laisser vide ne bloque pas la progression.
+- Binding identique à `SettingsScreen` : `get: { prefs.firstName ?? "" }`, `set: { prefs.firstName = $0 }`.
+- Sanitisation gérée par `AppPreferences.firstName.didSet` (trim + 20 chars max).
+- `.submitLabel(.done)` — le clavier se ferme à la validation.
+
+### Position
+
+1re page (tag 0) du `TabView` dans `OnboardingFlow`, sous le tagline. `AppConstants.Onboarding.pageCount = 5` inchangé.
+
+---
+
+## 13b. Onboarding écran 4 — TwoWordsPage
 
 Source : `OnboardingFlow.TwoWordsPage`.
 
