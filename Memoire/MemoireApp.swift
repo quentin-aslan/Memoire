@@ -53,6 +53,12 @@ struct MemoireApp: App {
                 .environment(\.deckCreation, deckCreation)
                 .environment(\.widgetLaunch, widgetLaunch)
                 .preferredColorScheme(.dark)
+                .task {
+                    // Cold launch: `onChange(scenePhase)` may not fire if SwiftUI starts
+                    // already in `.active`. `.task` runs once on appear to guarantee the
+                    // 30-day window is populated on force-quit relaunches.
+                    await NotificationScheduler.refresh(context: container.mainContext, prefs: prefs)
+                }
                 .onChange(of: scenePhase) { _, newPhase in
                     // `.active` → re-schedule one-shot notifications so days with no
                     // cards due are silently skipped. `.inactive` is excluded — it fires

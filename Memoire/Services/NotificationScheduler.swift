@@ -29,17 +29,16 @@ enum NotificationScheduler {
             var scheduled = 0
 
             for (index, entry) in futureDates.enumerated() {
-                guard let targetDate = Calendar.current.date(bySettingHour: prefs.notificationHour, minute: 0, second: 0, of: entry.date),
+                guard let targetDate = slotDate(for: entry.date, hour: prefs.notificationHour),
                       targetDate > now else { continue }
-
-                let content = UNMutableNotificationContent()
-                content.title = title(firstName: prefs.firstName)
-                content.body = body(count: entry.count)
-                content.sound = .default
 
                 let components = Calendar.current.dateComponents([.year, .month, .day, .hour], from: targetDate)
                 let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-                let request = UNNotificationRequest(identifier: slotID(index), content: content, trigger: trigger)
+                let request = UNNotificationRequest(
+                    identifier: slotID(index),
+                    content: makeContent(count: entry.count, firstName: prefs.firstName),
+                    trigger: trigger
+                )
 
                 try await center.add(request)
                 scheduled += 1
@@ -53,6 +52,10 @@ enum NotificationScheduler {
 
     private static func slotID(_ index: Int) -> String { "\(idPrefix).\(index)" }
 
+    private static func slotDate(for day: Date, hour: Int) -> Date? {
+        Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: day)
+    }
+
     private static func isAuthorized(promptIfNeeded: Bool) async throws -> Bool {
         let center = UNUserNotificationCenter.current()
         let initial = await center.notificationSettings()
@@ -64,6 +67,14 @@ enum NotificationScheduler {
             status = initial.authorizationStatus
         }
         return [.authorized, .provisional, .ephemeral].contains(status)
+    }
+
+    private static func makeContent(count: Int, firstName: String?) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = title(firstName: firstName)
+        content.body = body(count: count)
+        content.sound = .default
+        return content
     }
 
     private static func title(firstName: String?) -> String {
@@ -81,31 +92,44 @@ enum NotificationScheduler {
     #if DEBUG
     private static let testID = "\(idPrefix).test"
 
+    /// Returns true if a preview was scheduled, false if there's nothing to preview
+    /// (no future due cards in the same horizon `refresh()` uses). Mirrors the exact
+    /// guard in `refresh()` so test == prod.
     @MainActor
-    static func sendTestNotification(context: ModelContext, prefs: AppPreferences) async {
+    static func sendTestNotification(context: ModelContext, prefs: AppPreferences) async -> Bool {
         do {
             guard try await isAuthorized(promptIfNeeded: false) else {
                 logger.info("Test notification skipped — notifications not authorized")
-                return
+                return false
             }
 
             let descriptor = FetchDescriptor<Card>(predicate: #Predicate { !$0.isSoftDeleted })
             let activeCards = try context.fetch(descriptor)
-            let dueToday = DailyQueue.build(allCards: activeCards, allReviews: [], dailyNewCards: 0).count
-            let count = dueToday > 0 ? dueToday : prefs.dailyNewCards
+            let now = Date.now
 
-            let content = UNMutableNotificationContent()
-            content.title = title(firstName: prefs.firstName)
-            content.body = body(count: count)
-            content.sound = .default
+            guard let next = DailyQueue.futureDueDates(allCards: activeCards, days: maxSlots)
+                .first(where: { entry in
+                    guard let target = slotDate(for: entry.date, hour: prefs.notificationHour) else { return false }
+                    return target > now
+                }) else {
+                logger.info("Test notification skipped — no future cards to preview")
+                return false
+            }
 
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-            let request = UNNotificationRequest(identifier: testID, content: content, trigger: trigger)
+            let center = UNUserNotificationCenter.current()
+            center.removePendingNotificationRequests(withIdentifiers: [testID])
 
-            try await UNUserNotificationCenter.current().add(request)
-            logger.info("Test notification scheduled in 5 seconds (count: \(count))")
+            let request = UNNotificationRequest(
+                identifier: testID,
+                content: makeContent(count: next.count, firstName: prefs.firstName),
+                trigger: UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+            )
+            try await center.add(request)
+            logger.info("Test notification scheduled in 5 seconds (count: \(next.count))")
+            return true
         } catch {
             logger.error("Failed to schedule test notification: \(error.localizedDescription)")
+            return false
         }
     }
     #endif
