@@ -70,4 +70,30 @@ enum DailyQueue {
             .filter { $0 > now }
             .min()
     }
+
+    /// Returns (date, cardCount) for each future day where review cards are due,
+    /// up to `days` days ahead. New cards (fsrsReps == 0) are excluded — their
+    /// introduction day is unpredictable without session context.
+    static func futureDueDates(
+        allCards: [Card],
+        days: Int = 30,
+        now: Date = .now,
+        calendar: Calendar = .current
+    ) -> [(date: Date, count: Int)] {
+        guard let horizon = calendar.date(byAdding: .day, value: days, to: now) else { return [] }
+
+        var grouped: [Date: Int] = [:]
+        for card in allCards {
+            guard !card.isSoftDeleted,
+                  card.fsrsReps > 0,
+                  let next = card.nextReviewDate,
+                  next > now,
+                  next <= horizon else { continue }
+            let day = calendar.startOfDay(for: next)
+            grouped[day, default: 0] += 1
+        }
+        return grouped
+            .sorted { $0.key < $1.key }
+            .map { ($0.key, $0.value) }
+    }
 }

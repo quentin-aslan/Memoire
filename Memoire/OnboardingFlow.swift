@@ -1,8 +1,10 @@
+import SwiftData
 import SwiftUI
 import UserNotifications
 
 struct OnboardingFlow: View {
     @Environment(\.appPreferences) private var prefs
+    @Environment(\.modelContext) private var modelContext
     @State private var pageIndex: Int = 0
 
     private let totalPages = AppConstants.Onboarding.pageCount
@@ -99,7 +101,7 @@ struct OnboardingFlow: View {
 
     private func finishOnboarding() {
         prefs.hasOnboarded = true
-        Task { await NotificationScheduler.scheduleDaily(hour: prefs.notificationHour) }
+        Task { await NotificationScheduler.refresh(context: modelContext, prefs: prefs) }
     }
 }
 

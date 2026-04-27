@@ -502,3 +502,37 @@ Footnote (rétractée) :
 | Sheet DeckDetail drag medium → large | 30-60% | < 20% → retirer le forecast 7j du large, garder seulement medium |
 | CardDetail flip card recto/verso | ≥ 80% des visites flippent | < 50% → ajouter affordance plus claire ou afficher recto+verso stacked |
 | Status words confusion (Familière vs Ancrée) | < 2/30 testeurs | ≥ 3/30 → merger en "Stable" + drop "Ancrée" |
+
+---
+
+## 19. Notifications — pré-planification one-shot (workaround no-backend)
+
+**Fichiers** : `Services/NotificationScheduler.swift`, `Scheduling/DailyQueue.swift`
+
+### Règle de déclenchement
+Une notification est planifiée uniquement pour les jours où `count > 0` cartes sont dues (`fsrsReps > 0 && !isSoftDeleted && nextReviewDate > now`). Les cartes nouvelles (`fsrsReps == 0`) sont exclues : leur jour d'introduction dépend du contexte de session et ne peut pas être prédit à l'avance.
+
+### Copy
+| Cas | Titre | Body |
+|---|---|---|
+| Avec prénom | `"\(name), vos révisions vous attendent"` | `"\(n) carte(s) · ≈ X minutes"` |
+| Sans prénom | `"Vos révisions vous attendent"` | idem |
+
+Le body réutilise `HomeCopy.sessionTimeEstimate(cardsDue:)` — mêmes règles que l'accueil (12 s/carte, cap 100 cartes, arrondi 5 min au-delà de 10 min).
+
+### Horizon et cap
+- 30 jours max pré-planifiés (iOS autorise 64 notifications/app).
+- Si l'utilisateur n'ouvre pas l'app pendant > 30 jours, les notifications s'arrêtent. Cas accepté pour V4.
+
+### Identifiants
+`"memoire.dailyReview.{i}"` où `i` = index dans le tableau trié par date (0…29).
+Constante : `AppConstants.Notifications.dailyReviewIDPrefix`.
+
+### Triggers de replanification
+Chaque appel à `NotificationScheduler.refresh(context:prefs:)` annule les 30 slots et replanifie depuis les données SwiftData courantes. Appelé :
+- Au retour en `.active` (app foreground) dans `MemoireApp`
+- Au changement de `prefs.notificationHour` dans `MemoireApp`
+- À la fin de l'onboarding dans `OnboardingFlow`
+
+### ⚠️ À remplacer en V1.1
+Ce mécanisme est un workaround entièrement local. Quand Supabase + APNs server-side atterrissent, la logique de déclenchement migre côté backend et `NotificationScheduler.refresh` peut être supprimé. Les observers `onChange` dans `MemoireApp` et le call site `OnboardingFlow.finishOnboarding()` peuvent être simplifiés. Aucune migration de données utilisateur requise (notifications locales uniquement).
