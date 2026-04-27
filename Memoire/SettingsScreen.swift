@@ -14,6 +14,9 @@ struct SettingsScreen: View {
     @State private var pendingExport: BackupDocument?
     @State private var pendingImportURL: URL?
     @State private var backupAlert: String?
+    #if DEBUG
+    @State private var testNotifAlertShown = false
+    #endif
 
     private static let backupLogger = Logger(
         subsystem: AppConstants.Logging.subsystem,
@@ -155,6 +158,16 @@ struct SettingsScreen: View {
                         Text("Rejouer l'onboarding")
                             .foregroundStyle(Color.stateAgain)
                     }
+
+                    Button {
+                        Task {
+                            await NotificationScheduler.sendTestNotification(context: modelContext, prefs: prefs)
+                            testNotifAlertShown = true
+                        }
+                    } label: {
+                        Text("Tester la notification")
+                            .foregroundStyle(Color.gold)
+                    }
                 } label: {
                     Text("Avancé")
                         .font(.sans(15, weight: .medium))
@@ -209,6 +222,13 @@ struct SettingsScreen: View {
         } message: { message in
             Text(message)
         }
+        #if DEBUG
+        .alert("Notification envoyée", isPresented: $testNotifAlertShown) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Mets l'app en arrière-plan dans les 5 secondes pour la voir.")
+        }
+        #endif
     }
 
     private var supportMailURL: URL? {

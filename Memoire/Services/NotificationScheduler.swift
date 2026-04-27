@@ -80,4 +80,38 @@ enum NotificationScheduler {
         let estimate = HomeCopy.sessionTimeEstimate(cardsDue: count)
         return String(localized: "\(estimate) · \(count) cartes")
     }
+
+    @MainActor
+    static func sendTestNotification(context: ModelContext, prefs: AppPreferences) async {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        guard [.authorized, .provisional, .ephemeral]
+            .contains(settings.authorizationStatus) else {
+            logger.info("Test notification skipped — notifications not authorized")
+            return
+        }
+
+        let allCards = (try? context.fetch(FetchDescriptor<Card>())) ?? []
+        let dueToday = DailyQueue.build(allCards: allCards, allReviews: [], dailyNewCards: 0).count
+        let count = dueToday > 0 ? dueToday : 7
+
+        let content = UNMutableNotificationContent()
+        content.title = title(firstName: prefs.firstName)
+        content.body = body(count: count)
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "\(idPrefix).test",
+            content: content,
+            trigger: trigger
+        )
+
+        do {
+            try await center.add(request)
+            logger.info("Test notification scheduled in 5 seconds (count: \(count))")
+        } catch {
+            logger.error("Failed to schedule test notification: \(error.localizedDescription)")
+        }
+    }
 }
