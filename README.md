@@ -85,6 +85,14 @@ Mémoire/
 
 ---
 
+## Internationalisation (FR + EN)
+
+L'app est bilingue (FR source, EN secondaire) via Apple String Catalogs (`Memoire/Resources/Localizable.xcstrings`). Source-as-key : la clé d'une string est la phrase française elle-même.
+
+À chaque ajout de string utilisateur, mets à jour `scripts/sync-xcstrings.py` puis lance-le pour propager FR → EN + règles CLDR plurielles dans le catalog. Voir `scripts/README.md` pour la procédure complète.
+
+---
+
 ## Fonctionnalités MVP
 
 - [x] Onboarding 4 écrans (démo flip interactif, Mode Calme, notifications)

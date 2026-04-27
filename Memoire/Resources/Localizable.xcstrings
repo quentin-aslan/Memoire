@@ -13,21 +13,45 @@
       }
     },
     "%@ · %lld cartes": {
+      "extractionState": "manual",
       "localizations": {
         "fr": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ · %2$lld cartes"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld carte"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld cartes"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$lld cards"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld card"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@ · %2$lld cards"
+                }
+              }
+            }
           }
         }
-      },
-      "extractionState": "manual"
+      }
     },
     "%@, %@.": {
       "localizations": {
