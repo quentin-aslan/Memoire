@@ -1942,6 +1942,17 @@
         }
       }
     },
+    "On va faire connaissance.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let's get to know each other."
+          }
+        }
+      }
+    },
     "Organisez vos cartes par sujet. Ajoutez des questions, laissez l'algorithme faire le reste.": {
       "extractionState": "manual",
       "localizations": {

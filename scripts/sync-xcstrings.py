@@ -194,6 +194,7 @@ TRANSLATIONS = {
     # OnboardingFlow
     "Passer": "Skip",
     "Apprenez en profondeur, sans pression.": "Learn deeply, without pressure.",
+    "On va faire connaissance.": "Let's get to know each other.",
     "Comment tu t'appelles ?": "What's your name?",
     "Ton prénom": "Your first name",
     "Le flip": "The flip",

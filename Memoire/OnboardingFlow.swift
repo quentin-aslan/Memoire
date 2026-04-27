@@ -23,6 +23,9 @@ struct OnboardingFlow: View {
                     TwoWordsPage().tag(5)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .onChange(of: pageIndex) { _, _ in
+                    KeyboardDismisser.dismiss()
+                }
 
                 bottomBar
             }
@@ -34,6 +37,7 @@ struct OnboardingFlow: View {
             Spacer()
             if pageIndex < totalPages - 1 {
                 Button("Passer") {
+                    KeyboardDismisser.dismiss()
                     finishOnboarding()
                 }
                 .font(.sans(15, weight: .medium))
@@ -57,6 +61,7 @@ struct OnboardingFlow: View {
             }
 
             Button {
+                KeyboardDismisser.dismiss()
                 if pageIndex < totalPages - 1 {
                     withAnimation { pageIndex += 1 }
                 } else {
@@ -141,39 +146,93 @@ private struct WelcomePage: View {
 
 private struct NamePage: View {
     @Environment(\.appPreferences) private var prefs
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var nameFocused: Bool
+    @State private var appeared = false
 
     var body: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: 24) {
             Spacer()
 
-            Text("Comment tu t'appelles ?")
-                .font(.serif(28, weight: .medium))
-                .foregroundStyle(Color.textPrimary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 28)
+            block(delay: 0) {
+                Text("On va faire connaissance.")
+                    .font(.serif(17))
+                    .italic()
+                    .foregroundStyle(Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 28)
+            }
 
-            TextField("Ton prénom", text: Binding(
-                get: { prefs.firstName ?? "" },
-                set: { prefs.firstName = $0 }
-            ))
-            .font(.sans(17))
-            .foregroundStyle(Color.textPrimary)
-            .textInputAutocapitalization(.words)
-            .autocorrectionDisabled()
-            .focused($nameFocused)
-            .submitLabel(.done)
-            .onSubmit { nameFocused = false }
-            .padding(18)
-            .background(Color.bgCard, in: .rect(cornerRadius: 14))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color.goldSubtle, lineWidth: 0.5)
-            )
-            .padding(.horizontal, 20)
+            block(delay: 1) {
+                Text("Comment tu t'appelles ?")
+                    .font(.serif(32, weight: .medium))
+                    .foregroundStyle(Color.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 28)
+            }
+
+            block(delay: 2) {
+                TextField("Ton prénom", text: Binding(
+                    get: { prefs.firstName ?? "" },
+                    set: { prefs.firstName = $0 }
+                ))
+                .font(.sans(17))
+                .foregroundStyle(Color.textPrimary)
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .focused($nameFocused)
+                .submitLabel(.done)
+                .onSubmit {
+                    nameFocused = false
+                    KeyboardDismisser.dismiss()
+                }
+                .padding(18)
+                .background(Color.bgCard, in: .rect(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.goldSubtle, lineWidth: 0.5)
+                )
+                .padding(.horizontal, 20)
+            }
 
             Spacer()
         }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            nameFocused = false
+            KeyboardDismisser.dismiss()
+        }
+        .onAppear {
+            if reduceMotion {
+                appeared = true
+            } else {
+                withAnimation(.easeOut(duration: 0.45)) { appeared = true }
+            }
+        }
+    }
+
+    // Cascade fade-in: each block enters 130 ms after the previous, with a
+    // larger upward translation than TwoWordsPage to give the page more
+    // theatrical "reveal" weight. reduceMotion skips the cascade entirely.
+    @ViewBuilder
+    private func block<C: View>(delay step: Int, @ViewBuilder content: () -> C) -> some View {
+        let staggered = Double(step) * 0.13
+        content()
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared || reduceMotion ? 0 : 22)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.45).delay(staggered), value: appeared)
+    }
+}
+
+// UIKit-level dismissal — bulletproof when @FocusState alone is unreliable
+// (e.g. inside a paged TabView where focus state can desync from the active
+// first responder).
+private enum KeyboardDismisser {
+    static func dismiss() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil, from: nil, for: nil
+        )
     }
 }
 
