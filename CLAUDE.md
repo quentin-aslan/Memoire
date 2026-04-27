@@ -187,6 +187,8 @@ Jamais `try?` qui mange silencieusement. `do/catch` explicite ou `throws` propag
 
 Source-as-key dans `Memoire/Resources/Localizable.xcstrings`. La langue source est le français (`developmentRegion = fr`), `en` est ajoutée comme deuxième locale. Pour les vues : `Text("Bonjour")` direct (extraction auto par Xcode). Pour les contextes non-Text (notifications, enums, AttributedString segments, accessibility labels dynamiques) : `String(localized: "...")` ou `LocalizedStringResource`. Les pluriels sont gérés en CLDR `one`/`other` dans le catalog, pas en branching `count == 1 ? ... : ...` dans le code. Les `DateFormatter` avec `Locale("fr_FR")` hardcodée sont interdits — utiliser `date.formatted(.dateTime…)` qui suit `Locale.current`. Cas spécial EditorialSheet : les footnotes pédagogiques "En anglais : Stability/Retrievability" sont inversées en EN (« In French: Solidité/Fraîcheur »).
 
+**Workflow d'ajout de string** : ajouter la nouvelle clé FR dans le code, build, ajouter la paire FR → EN (ou la règle CLDR) dans `scripts/sync-xcstrings.py`, lancer `python3 scripts/sync-xcstrings.py`, re-build. Le script est la source unique de vérité pour les traductions EN — ne jamais éditer le `Localizable.xcstrings` à la main pour de l'EN. Voir `scripts/README.md`.
+
 ### Copy & seuils — synchroniser avec `docs/v4-copy-and-algorithms.md`
 
 Toute string figée affichée à l'utilisateur (status words, insight sentences, sheets, onboarding, toast, completion registres, headline deck, etc.) **et** tout seuil/règle algorithmique (résolution status, bandes de stability, formatDuration, conditions de toast, tirage pondéré) sont indexés dans `docs/v4-copy-and-algorithms.md`.
