@@ -54,21 +54,32 @@
       }
     },
     "%@, %@.": {
+      "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@, %2$@."
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, %2$@."
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@, %2$@."
+          }
         }
-      },
-      "extractionState": "manual"
+      }
+    },
+    "%@, vos révisions vous attendent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, your reviews are waiting"
+          }
+        }
+      }
     },
     "%lld": {
       "extractionState": "manual",
@@ -82,55 +93,55 @@
       }
     },
     "%lld / %lld": {
+      "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$lld / %2$lld"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld / %2$lld"
           }
-        }
-      },
-      "extractionState": "manual"
-    },
-    "%lld / %lld cartes consolidées": {
-      "localizations": {
+        },
         "fr": {
           "stringUnit": {
             "state": "new",
-            "value": "%1$lld / %2$lld cartes consolidées"
+            "value": "%1$lld / %2$lld"
           }
-        },
+        }
+      }
+    },
+    "%lld / %lld cartes consolidées": {
+      "extractionState": "manual",
+      "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld / %2$lld cards consolidated"
           }
-        }
-      },
-      "extractionState": "manual"
-    },
-    "%lld / %lld révisées": {
-      "localizations": {
+        },
         "fr": {
           "stringUnit": {
             "state": "new",
-            "value": "%1$lld / %2$lld révisées"
+            "value": "%1$lld / %2$lld cartes consolidées"
           }
-        },
+        }
+      }
+    },
+    "%lld / %lld révisées": {
+      "extractionState": "manual",
+      "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld / %2$lld reviewed"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld / %2$lld révisées"
+          }
         }
-      },
-      "extractionState": "manual"
+      }
     },
     "%lld cartes": {
       "extractionState": "manual",
@@ -379,21 +390,21 @@
       }
     },
     "%lld jours d'affilée · %lld derniers jours": {
+      "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$lld jours d'affilée · %2$lld derniers jours"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld-day streak · last %2$lld days"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld jours d'affilée · %2$lld derniers jours"
+          }
         }
-      },
-      "extractionState": "manual"
+      }
     },
     "%lld jours de régularité": {
       "extractionState": "manual",
@@ -492,21 +503,21 @@
       }
     },
     ", prochaine révision dans %@ au lieu de %@.": {
+      "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "new",
-            "value": ", prochaine révision dans %1$@ au lieu de %2$@."
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": ", next review in %1$@ instead of %2$@."
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": ", prochaine révision dans %1$@ au lieu de %2$@."
+          }
         }
-      },
-      "extractionState": "manual"
+      }
     },
     "/%lld": {
       "extractionState": "manual",
@@ -777,6 +788,17 @@
         }
       }
     },
+    "Aucune carte due dans les 30 prochains jours.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No cards due in the next 30 days."
+          }
+        }
+      }
+    },
     "Aucune carte encore consolidée. %lld cartes en attente.": {
       "extractionState": "manual",
       "localizations": {
@@ -836,6 +858,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "No cards to review"
+          }
+        }
+      }
+    },
+    "Aucune notification à prévisualiser": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to preview"
           }
         }
       }
@@ -1201,21 +1234,21 @@
       }
     },
     "Dans %lld jours · %@": {
+      "extractionState": "manual",
       "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Dans %1$lld jours · %2$@"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "In %1$lld days · %2$@"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Dans %1$lld jours · %2$@"
+          }
         }
-      },
-      "extractionState": "manual"
+      }
     },
     "Dans environ %lld mois": {
       "extractionState": "manual",
@@ -1736,6 +1769,17 @@
         }
       }
     },
+    "Mets l'app en arrière-plan dans les 5 secondes pour la voir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background the app within 5 seconds to see it."
+          }
+        }
+      }
+    },
     "Mode Calme": {
       "extractionState": "manual",
       "localizations": {
@@ -1894,6 +1938,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "NEW"
+          }
+        }
+      }
+    },
+    "Notification envoyée": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notification sent"
           }
         }
       }
@@ -2506,6 +2561,7 @@
       }
     },
     "Supprimer définitivement %@ et ses %lld cartes": {
+      "extractionState": "manual",
       "localizations": {
         "fr": {
           "variations": {
@@ -2543,8 +2599,7 @@
             }
           }
         }
-      },
-      "extractionState": "manual"
+      }
     },
     "Sur ces %lld cartes, ta mémoire répond bien.": {
       "extractionState": "manual",
@@ -2594,6 +2649,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Done"
+          }
+        }
+      }
+    },
+    "Tester la notification": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test notification"
           }
         }
       }
@@ -3060,6 +3126,7 @@
       }
     },
     "« %@ » et ses %lld cartes seront supprimés de façon irréversible.": {
+      "extractionState": "manual",
       "localizations": {
         "fr": {
           "variations": {
@@ -3097,8 +3164,7 @@
             }
           }
         }
-      },
-      "extractionState": "manual"
+      }
     },
     "« %@ » sera supprimé de façon irréversible.": {
       "extractionState": "manual",

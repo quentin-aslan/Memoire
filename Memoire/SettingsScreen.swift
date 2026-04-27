@@ -15,7 +15,7 @@ struct SettingsScreen: View {
     @State private var pendingImportURL: URL?
     @State private var backupAlert: String?
     #if DEBUG
-    @State private var testNotifAlertShown = false
+    @State private var testNotifResult: TestNotifResult?
     #endif
 
     private static let backupLogger = Logger(
@@ -161,8 +161,8 @@ struct SettingsScreen: View {
 
                     Button {
                         Task {
-                            await NotificationScheduler.sendTestNotification(context: modelContext, prefs: prefs)
-                            testNotifAlertShown = true
+                            let sent = await NotificationScheduler.sendTestNotification(context: modelContext, prefs: prefs)
+                            testNotifResult = sent ? .scheduled : .nothingToPreview
                         }
                     } label: {
                         Text("Tester la notification")
@@ -223,10 +223,17 @@ struct SettingsScreen: View {
             Text(message)
         }
         #if DEBUG
-        .alert("Notification envoyée", isPresented: $testNotifAlertShown) {
+        .alert(
+            testNotifResult?.title ?? "",
+            isPresented: Binding(
+                get: { testNotifResult != nil },
+                set: { if !$0 { testNotifResult = nil } }
+            ),
+            presenting: testNotifResult
+        ) { _ in
             Button("OK", role: .cancel) {}
-        } message: {
-            Text("Mets l'app en arrière-plan dans les 5 secondes pour la voir.")
+        } message: { result in
+            Text(result.message)
         }
         #endif
     }
@@ -295,3 +302,28 @@ struct SettingsScreen: View {
         return "memoire-backup-\(stamp).\(AppConstants.Backup.fileExtension)"
     }
 }
+
+#if DEBUG
+private enum TestNotifResult: Identifiable {
+    case scheduled
+    case nothingToPreview
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .scheduled: return String(localized: "Notification envoyée")
+        case .nothingToPreview: return String(localized: "Aucune notification à prévisualiser")
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .scheduled:
+            return String(localized: "Mets l'app en arrière-plan dans les 5 secondes pour la voir.")
+        case .nothingToPreview:
+            return String(localized: "Aucune carte due dans les 30 prochains jours.")
+        }
+    }
+}
+#endif
