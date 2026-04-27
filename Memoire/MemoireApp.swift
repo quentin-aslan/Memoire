@@ -54,12 +54,17 @@ struct MemoireApp: App {
                 .environment(\.widgetLaunch, widgetLaunch)
                 .preferredColorScheme(.dark)
                 .onChange(of: scenePhase) { _, newPhase in
-                    // Only on `.background` — `.inactive` fires on every brief
-                    // interruption (Control Center pull, banner pull-down,
-                    // screenshots), which would re-fetch all SwiftData rows
-                    // dozens of times per session for no benefit.
-                    guard newPhase == .background else { return }
-                    WidgetSnapshotWriter.refresh(context: container.mainContext, prefs: prefs)
+                    // `.active` → re-schedule one-shot notifications so days with no
+                    // cards due are silently skipped. `.inactive` is excluded — it fires
+                    // on every banner/Control Center pull for no benefit.
+                    if newPhase == .active {
+                        Task { await NotificationScheduler.refresh(context: container.mainContext, prefs: prefs) }
+                    } else if newPhase == .background {
+                        WidgetSnapshotWriter.refresh(context: container.mainContext, prefs: prefs)
+                    }
+                }
+                .onChange(of: prefs.notificationHour) { _, _ in
+                    Task { await NotificationScheduler.refresh(context: container.mainContext, prefs: prefs) }
                 }
         }
         .modelContainer(container)

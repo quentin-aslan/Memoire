@@ -6,7 +6,7 @@ enum AppConstants {
     }
 
     enum Notifications {
-        static let dailyReviewID = "memoire.dailyReview"
+        static let dailyReviewIDPrefix = "memoire.dailyReview"
     }
 
     enum Regularity {

@@ -18,11 +18,7 @@ final class AppPreferences {
     }
 
     var notificationHour: Int = UserDefaults.standard.integer(forKey: Keys.notificationHour, default: 18) {
-        didSet {
-            UserDefaults.standard.set(notificationHour, forKey: Keys.notificationHour)
-            let hour = notificationHour
-            Task { @MainActor in await NotificationScheduler.scheduleDaily(hour: hour) }
-        }
+        didSet { UserDefaults.standard.set(notificationHour, forKey: Keys.notificationHour) }
     }
 
     var dailyNewCards: Int = UserDefaults.standard.integer(forKey: Keys.dailyNewCards, default: 10) {
