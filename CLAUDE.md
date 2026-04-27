@@ -185,9 +185,23 @@ Jamais `try?` qui mange silencieusement. `do/catch` explicite ou `throws` propag
 
 ### Internationalisation
 
-Source-as-key dans `Memoire/Resources/Localizable.xcstrings`. La langue source est le français (`developmentRegion = fr`), `en` est ajoutée comme deuxième locale. Pour les vues : `Text("Bonjour")` direct (extraction auto par Xcode). Pour les contextes non-Text (notifications, enums, AttributedString segments, accessibility labels dynamiques) : `String(localized: "...")` ou `LocalizedStringResource`. Les pluriels sont gérés en CLDR `one`/`other` dans le catalog, pas en branching `count == 1 ? ... : ...` dans le code. Les `DateFormatter` avec `Locale("fr_FR")` hardcodée sont interdits — utiliser `date.formatted(.dateTime…)` qui suit `Locale.current`. Cas spécial EditorialSheet : les footnotes pédagogiques "En anglais : Stability/Retrievability" sont inversées en EN (« In French: Solidité/Fraîcheur »).
+Source-as-key dans `Memoire/Resources/Localizable.xcstrings`. Source = `fr`, deuxième locale = `en`.
 
-**Workflow d'ajout de string** : ajouter la nouvelle clé FR dans le code, build, ajouter la paire FR → EN (ou la règle CLDR) dans `scripts/sync-xcstrings.py`, lancer `python3 scripts/sync-xcstrings.py`, re-build. Le script est la source unique de vérité pour les traductions EN — ne jamais éditer le `Localizable.xcstrings` à la main pour de l'EN. Voir `scripts/README.md`.
+- Vues SwiftUI : `Text("Bonjour")` direct (extraction Xcode auto).
+- Non-Text (notifs, enums, AttributedString segments, accessibility dynamiques) : `String(localized: "…")` ou `LocalizedStringResource`.
+- Pluriels : CLDR `one`/`other` dans le catalog. Jamais `count == 1 ? "carte" : "cartes"` dans le code.
+- Dates : `date.formatted(.dateTime…)` (suit `Locale.current`). Interdit : `DateFormatter` avec `Locale("fr_FR")` hardcodée.
+- Footnotes EditorialSheet : « En anglais : Stability/Retrievability » → inversées en EN en « In French: Solidité/Fraîcheur ».
+
+**Source unique de vérité pour les traductions EN : `scripts/sync-xcstrings.py`.** Ne jamais éditer `Localizable.xcstrings` à la main pour ajouter de l'EN — toujours passer par le script.
+
+**Avant tout commit ou push touchant une string utilisateur** (`Text("…")`, `String(localized: "…")`, `LocalizedStringResource(…)`, accessibility label, notification, widget copy) :
+
+```bash
+python3 scripts/sync-xcstrings.py
+```
+
+Doit afficher `Missing: 0`, exit code `0`. Si `Missing > 0` : ajouter les paires FR → EN manquantes à `TRANSLATIONS` ou `PLURALS` dans le script, relancer, puis commit. Voir `scripts/README.md`.
 
 ### Copy & seuils — synchroniser avec `docs/v4-copy-and-algorithms.md`
 
