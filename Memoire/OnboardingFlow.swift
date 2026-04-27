@@ -16,10 +16,11 @@ struct OnboardingFlow: View {
 
                 TabView(selection: $pageIndex) {
                     WelcomePage().tag(0)
-                    FlipExplainerPage().tag(1)
-                    SensitivityPage().tag(2)
-                    NotificationPage().tag(3)
-                    TwoWordsPage().tag(4)
+                    NamePage().tag(1)
+                    FlipExplainerPage().tag(2)
+                    SensitivityPage().tag(3)
+                    NotificationPage().tag(4)
+                    TwoWordsPage().tag(5)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
@@ -98,9 +99,6 @@ struct OnboardingFlow: View {
 }
 
 private struct WelcomePage: View {
-    @Environment(\.appPreferences) private var prefs
-    @FocusState private var nameFocused: Bool
-
     var body: some View {
         VStack(spacing: 28) {
             Spacer()
@@ -135,19 +133,31 @@ private struct WelcomePage: View {
                     .padding(.horizontal, 40)
             }
 
-            nameField
-
+            Spacer()
             Spacer()
         }
     }
+}
 
-    private var nameField: some View {
-        VStack(spacing: 6) {
+private struct NamePage: View {
+    @Environment(\.appPreferences) private var prefs
+    @FocusState private var nameFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 28) {
+            Spacer()
+
+            Text("Comment tu t'appelles ?")
+                .font(.serif(28, weight: .medium))
+                .foregroundStyle(Color.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 28)
+
             TextField("Ton prénom", text: Binding(
                 get: { prefs.firstName ?? "" },
                 set: { prefs.firstName = $0 }
             ))
-            .font(.sans(15))
+            .font(.sans(17))
             .foregroundStyle(Color.textPrimary)
             .textInputAutocapitalization(.words)
             .autocorrectionDisabled()
@@ -160,14 +170,10 @@ private struct WelcomePage: View {
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(Color.goldSubtle, lineWidth: 0.5)
             )
+            .padding(.horizontal, 20)
 
-            Text("Optionnel — pour personnaliser ta salutation.")
-                .font(.sans(12))
-                .foregroundStyle(Color.textTertiary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 4)
+            Spacer()
         }
-        .padding(.horizontal, 20)
     }
 }
 

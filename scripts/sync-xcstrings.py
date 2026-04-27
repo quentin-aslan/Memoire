@@ -194,8 +194,8 @@ TRANSLATIONS = {
     # OnboardingFlow
     "Passer": "Skip",
     "Apprenez en profondeur, sans pression.": "Learn deeply, without pressure.",
+    "Comment tu t'appelles ?": "What's your name?",
     "Ton prénom": "Your first name",
-    "Optionnel — pour personnaliser ta salutation.": "Optional — to personalize your greeting.",
     "Le flip": "The flip",
     "Lisez la question, pensez à la réponse, puis appuyez pour vérifier.": "Read the question, think of the answer, then tap to check.",
     "Sensibilité visuelle": "Visual sensitivity",

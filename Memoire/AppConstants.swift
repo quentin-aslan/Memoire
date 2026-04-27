@@ -35,7 +35,7 @@ enum AppConstants {
     }
 
     enum Onboarding {
-        static let pageCount = 5
+        static let pageCount = 6
     }
 
     enum LearningSteps {
