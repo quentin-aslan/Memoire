@@ -1123,6 +1123,17 @@
         }
       }
     },
+    "Comment tu t'appelles ?": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What's your name?"
+          }
+        }
+      }
+    },
     "Connu": {
       "extractionState": "manual",
       "localizations": {
@@ -1927,17 +1938,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "OK"
-          }
-        }
-      }
-    },
-    "Optionnel — pour personnaliser ta salutation.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Optional — to personalize your greeting."
           }
         }
       }
