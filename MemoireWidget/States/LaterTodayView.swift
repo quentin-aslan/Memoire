@@ -38,7 +38,7 @@ struct LaterTodayView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 9)
 
-                Text(count == 1 ? "1 carte" : "\(count) cartes")
+                Text("\(count) cartes")
                     .font(.sans(11))
                     .foregroundStyle(Color.white.opacity(0.38))
                     .lineLimit(1)

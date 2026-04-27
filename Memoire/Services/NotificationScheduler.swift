@@ -23,8 +23,8 @@ enum NotificationScheduler {
             center.removePendingNotificationRequests(withIdentifiers: [dailyID])
 
             let content = UNMutableNotificationContent()
-            content.title = "Vos révisions vous attendent"
-            content.body = "Quelques cartes aujourd'hui — 5 minutes suffisent."
+            content.title = String(localized: "Vos révisions vous attendent")
+            content.body = String(localized: "Quelques cartes aujourd'hui — 5 minutes suffisent.")
             content.sound = .default
 
             let trigger = UNCalendarNotificationTrigger(

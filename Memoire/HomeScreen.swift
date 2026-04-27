@@ -36,15 +36,8 @@ struct HomeScreen: View {
         DailyQueue.nextDueDate(allCards: allCards)
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.dateFormat = "EEEE d MMMM"
-        return f
-    }()
-
     private var dateHeader: String {
-        Self.dateFormatter.string(from: .now).uppercased()
+        Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide)).uppercased()
     }
 
     var body: some View {
@@ -115,7 +108,7 @@ struct HomeScreen: View {
             ProgressRing(progress: completionProgress)
 
             VStack(spacing: 8) {
-                Text("\(cardsDue)")
+                Text(cardsDue, format: .number)
                     .font(.serif(72, weight: .medium))
                     .foregroundStyle(Color.textPrimary)
                     .contentTransition(prefs.calmMode ? .identity : .numericText(value: Double(cardsDue)))

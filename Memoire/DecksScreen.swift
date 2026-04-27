@@ -188,7 +188,7 @@ struct DecksScreen: View {
                     .font(.serif(17, weight: .medium))
                     .foregroundStyle(Color.textPrimary)
 
-                Text("\(totalCount) carte\(totalCount == 1 ? "" : "s")")
+                Text("\(totalCount) cartes")
                     .font(.sans(13))
                     .foregroundStyle(Color.textSecondary)
             }
