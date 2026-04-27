@@ -1931,6 +1931,17 @@
         }
       }
     },
+    "Optionnel — pour personnaliser ta salutation.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional — to personalize your greeting."
+          }
+        }
+      }
+    },
     "Organisez vos cartes par sujet. Ajoutez des questions, laissez l'algorithme faire le reste.": {
       "extractionState": "manual",
       "localizations": {
@@ -2583,6 +2594,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Your deck holds a little better than yesterday."
+          }
+        }
+      }
+    },
+    "Ton prénom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your first name"
           }
         }
       }
