@@ -8,25 +8,27 @@ enum HomeCopy {
         let hour = Calendar.current.component(.hour, from: date)
         let base = salutation(forHour: hour)
         if let name = AppPreferences.sanitize(firstName) {
-            return "\(base), \(name)."
+            // Single localizable template — keeps ", " and final period under
+            // translator control instead of concatenating two segments.
+            return String(localized: "\(base), \(name).")
         }
         return base
     }
 
     static func salutation(forHour hour: Int) -> String {
         switch hour {
-        case 5...11:  return "Bonjour"
-        case 12...17: return "Bon après-midi"
-        case 18...23: return "Bonsoir"
-        default:      return "Bonne nuit"
+        case 5...11:  return String(localized: "Bonjour")
+        case 12...17: return String(localized: "Bon après-midi")
+        case 18...23: return String(localized: "Bonsoir")
+        default:      return String(localized: "Bonne nuit")
         }
     }
 
     static func ctaLabel(cardsDue: Int) -> String {
         switch cardsDue {
-        case 1:     return "Réviser une carte"
-        case 2...5: return "Réviser \(cardsDue) cartes"
-        default:    return "Réviser"
+        case 1:     return String(localized: "Réviser une carte")
+        case 2...5: return String(localized: "Réviser \(cardsDue) cartes")
+        default:    return String(localized: "Réviser")
         }
     }
 
@@ -35,34 +37,34 @@ enum HomeCopy {
         // TDAH: 0-4 h → on retire l'urgence. L'hyperfocus nocturne se retourne
         // vite contre l'utilisateur, la session peut attendre le matin.
         if (0...4).contains(hour) {
-            return "À faire quand vous voulez."
+            return String(localized: "À faire quand vous voulez.")
         }
-        let noun = cardsDue == 1 ? "carte" : "cartes"
-        return "\(sessionTimeEstimate(cardsDue: cardsDue)) · \(cardsDue) \(noun)"
+        let estimate = sessionTimeEstimate(cardsDue: cardsDue)
+        return String(localized: "\(estimate) · \(cardsDue) cartes")
     }
 
     static func sessionTimeEstimate(cardsDue: Int) -> String {
         // TDAH: cap anti-ancrage. Au-delà de 100 cartes, "20 min ou plus" évite
         // d'afficher un chiffre effrayant qui déclenche l'évitement.
-        if cardsDue > 100 { return "≈ 20 minutes ou plus" }
+        if cardsDue > 100 { return String(localized: "≈ 20 minutes ou plus") }
 
         let seconds = Double(cardsDue) * AppConstants.FSRS.avgSecondsPerCard
-        if seconds < 60 { return "≈ 1 minute" }
+        if seconds < 60 { return String(localized: "≈ 1 minute") }
 
         if seconds <= 600 {
             let minutes = max(1, Int((seconds / 60).rounded()))
-            return "≈ \(minutes) \(minutes == 1 ? "minute" : "minutes")"
+            return String(localized: "≈ \(minutes) minutes")
         }
 
         let fiveMinChunks = max(1, Int((seconds / 300).rounded()))
-        return "≈ \(fiveMinChunks * 5) minutes"
+        return String(localized: "≈ \(fiveMinChunks * 5) minutes")
     }
 
     static func regularitySubtitle(streak: Int, windowDays: Int) -> String {
         switch streak {
-        case 0:  return "\(windowDays) derniers jours"
-        case 1:  return "1 jour d'affilée · \(windowDays) derniers jours"
-        default: return "\(streak) jours d'affilée · \(windowDays) derniers jours"
+        case 0:  return String(localized: "\(windowDays) derniers jours")
+        case 1:  return String(localized: "1 jour d'affilée · \(windowDays) derniers jours")
+        default: return String(localized: "\(streak) jours d'affilée · \(windowDays) derniers jours")
         }
     }
 
@@ -76,17 +78,12 @@ enum HomeCopy {
         }
 
         switch days {
-        case 1:       return "Prochaine révision demain."
-        case 7:       return "Prochaine révision dans une semaine."
-        case 2...14:  return "Prochaine révision dans \(days) jours."
-        default:      return "Prochaine révision le \(shortDateFormatter.string(from: date))."
+        case 1:       return String(localized: "Prochaine révision demain.")
+        case 7:       return String(localized: "Prochaine révision dans une semaine.")
+        case 2...14:  return String(localized: "Prochaine révision dans \(days) jours.")
+        default:
+            let dateStr = date.formatted(.dateTime.day().month(.wide))
+            return String(localized: "Prochaine révision le \(dateStr).")
         }
     }
-
-    private static let shortDateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.dateFormat = "d MMMM"
-        return f
-    }()
 }

@@ -76,7 +76,7 @@ struct EmptyDueState: View {
             Image(systemName: "plus")
                 .font(.system(size: 10, weight: .bold))
                 .accessibilityHidden(true)
-            Text("\(regularityDays) jour\(regularityDays == 1 ? "" : "s") de régularité")
+            Text("\(regularityDays) jours de régularité")
                 .font(.sans(12, weight: .semibold))
                 .tracking(1.2)
         }

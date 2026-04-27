@@ -237,12 +237,13 @@ struct CardDetailScreen: View {
 
         // Single source of truth for the rating label — Rating.swift owns the
         // user-facing word; we just reuse it bolded.
-        var s = AttributedString("Si tu réponds ")
-        var bold = AttributedString(Rating.good.label)
+        let ratingWord = String(localized: Rating.good.label)
+        var s = AttributedString(String(localized: "Si tu réponds "))
+        var bold = AttributedString(ratingWord)
         bold.font = .serif(16, weight: .semibold)
         bold.foregroundColor = Color.gold
         s.append(bold)
-        s.append(AttributedString(", prochaine révision dans \(projectedStr) au lieu de \(currentStr)."))
+        s.append(AttributedString(String(localized: ", prochaine révision dans \(projectedStr) au lieu de \(currentStr).")))
         return s
     }
 
@@ -293,63 +294,52 @@ struct CardDetailScreen: View {
         let cal = Calendar.current
         let days = cal.dateComponents([.day], from: cal.startOfDay(for: card.createdAt), to: cal.startOfDay(for: .now)).day ?? 0
         switch days {
-        case 0:        return "Apprise aujourd'hui"
-        case 1:        return "Apprise hier"
-        case 2..<7:    return "Apprise il y a \(days) jours"
-        case 7..<14:   return "Apprise il y a 1 semaine"
-        case 14..<30:  return "Apprise il y a \(days) jours"
-        case 30..<60:  return "Apprise il y a 1 mois"
-        case 60..<365: return "Apprise il y a \(days / 30) mois"
-        default:       return "Apprise il y a plus d'un an"
+        case 0:        return String(localized: "Apprise aujourd'hui")
+        case 1:        return String(localized: "Apprise hier")
+        case 2..<7:    return String(localized: "Apprise il y a \(days) jours")
+        case 7..<14:   return String(localized: "Apprise il y a 1 semaine")
+        case 14..<30:  return String(localized: "Apprise il y a \(days) jours")
+        case 30..<60:  return String(localized: "Apprise il y a 1 mois")
+        case 60..<365:
+            let months = days / 30
+            return String(localized: "Apprise il y a \(months) mois")
+        default:       return String(localized: "Apprise il y a plus d'un an")
         }
     }
 
     private var nextReviewLabel: String {
-        guard let next = card.nextReviewDate else { return "À ta prochaine session" }
+        guard let next = card.nextReviewDate else { return String(localized: "À ta prochaine session") }
         let cal = Calendar.current
         let now = Date.now
-        if next <= now { return "Disponible maintenant" }
+        if next <= now { return String(localized: "Disponible maintenant") }
         if cal.isDateInToday(next) {
             let state = FSRSState(rawValue: card.fsrsState) ?? .new
             let isLearning = state == .learning || state == .relearning
-            return isLearning ? Self.timeFormatter.string(from: next) : "Plus tard aujourd'hui"
+            return isLearning ? next.formatted(.dateTime.hour().minute()) : String(localized: "Plus tard aujourd'hui")
         }
         if cal.isDateInTomorrow(next) {
             let hour = cal.component(.hour, from: next)
-            return hour < 14 ? "Demain matin" : "Demain soir"
+            return hour < 14 ? String(localized: "Demain matin") : String(localized: "Demain soir")
         }
         let startNow = cal.startOfDay(for: now)
         let startNext = cal.startOfDay(for: next)
         let days = cal.dateComponents([.day], from: startNow, to: startNext).day ?? 0
+        let weekday = next.formatted(.dateTime.weekday(.wide))
         switch days {
         case 2..<7:
-            return "Dans \(days) jours · \(Self.weekdayFormatter.string(from: next))"
+            return String(localized: "Dans \(days) jours · \(weekday)")
         case 7..<14:
-            return "La semaine prochaine"
+            return String(localized: "La semaine prochaine")
         case 14..<30:
-            return "Dans environ \(days / 7) semaines"
+            return String(localized: "Dans environ \(days / 7) semaines")
         case 30..<90:
-            return "Dans environ \(days / 30) mois"
+            return String(localized: "Dans environ \(days / 30) mois")
         case 90..<365:
-            return "Dans plusieurs mois"
+            return String(localized: "Dans plusieurs mois")
         default:
-            return "L'an prochain"
+            return String(localized: "L'an prochain")
         }
     }
-
-    private static let timeFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.dateFormat = "HH'h'mm"
-        return f
-    }()
-
-    private static let weekdayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.dateFormat = "EEEE"
-        return f
-    }()
 }
 
 // MARK: - Status word (private to CardDetailScreen)
@@ -387,11 +377,11 @@ private enum CardStatusWord {
 
     var word: String {
         switch self {
-        case .toDiscover:   return "À découvrir"
-        case .forming:      return "En train de se former"
-        case .familiar:     return "Familière"
-        case .anchored:     return "Ancrée"
-        case .toReviewSoon: return "À revoir bientôt"
+        case .toDiscover:   return String(localized: "À découvrir")
+        case .forming:      return String(localized: "En train de se former")
+        case .familiar:     return String(localized: "Familière")
+        case .anchored:     return String(localized: "Ancrée")
+        case .toReviewSoon: return String(localized: "À revoir bientôt")
         }
     }
 
@@ -416,33 +406,33 @@ private enum CardStatusWord {
         switch self {
         case .toDiscover:
             return [
-                "Tu vas la rencontrer bientôt.",
-                "Cette carte attend son premier tour.",
-                "Première rencontre à venir."
+                String(localized: "Tu vas la rencontrer bientôt."),
+                String(localized: "Cette carte attend son premier tour."),
+                String(localized: "Première rencontre à venir.")
             ]
         case .forming:
             return [
-                "Cette carte cherche encore son rythme.",
-                "Elle revient souvent — c'est normal au début.",
-                "Mémoire l'espace progressivement."
+                String(localized: "Cette carte cherche encore son rythme."),
+                String(localized: "Elle revient souvent — c'est normal au début."),
+                String(localized: "Mémoire l'espace progressivement.")
             ]
         case .familiar:
             return [
-                "Tu retrouves cette carte sans effort. Elle tient bien.",
-                "Elle revient maintenant à intervalle confortable.",
-                "Cette carte a trouvé son rythme."
+                String(localized: "Tu retrouves cette carte sans effort. Elle tient bien."),
+                String(localized: "Elle revient maintenant à intervalle confortable."),
+                String(localized: "Cette carte a trouvé son rythme.")
             ]
         case .anchored:
             return [
-                "Cette carte est solidement installée.",
-                "Tu peux compter sur elle longtemps.",
-                "Elle ne reviendra pas avant un bon moment."
+                String(localized: "Cette carte est solidement installée."),
+                String(localized: "Tu peux compter sur elle longtemps."),
+                String(localized: "Elle ne reviendra pas avant un bon moment.")
             ]
         case .toReviewSoon:
             return [
-                "Mémoire la ramène pour toi cette semaine.",
-                "Elle redemande un passage — rien de cassé.",
-                "Cette carte demande une nouvelle visite."
+                String(localized: "Mémoire la ramène pour toi cette semaine."),
+                String(localized: "Elle redemande un passage — rien de cassé."),
+                String(localized: "Cette carte demande une nouvelle visite.")
             ]
         }
     }

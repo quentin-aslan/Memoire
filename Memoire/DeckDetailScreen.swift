@@ -229,11 +229,10 @@ struct DeckDetailScreen: View {
         let total = deck.totalActiveCards
         let solid = deck.solidCount
 
-        if total == 0 { return "Ce paquet est vide. Ajoute ta première carte." }
-        if solid == 0 { return "Aucune carte encore consolidée. \(total) " + (total == 1 ? "carte" : "cartes") + " en attente." }
-        if solid == total { return "Tout ce paquet est consolidé." }
-        let cardWord = total == 1 ? "carte consolidée" : "cartes consolidées"
-        return "\(solid) / \(total) \(cardWord)"
+        if total == 0 { return String(localized: "Ce paquet est vide. Ajoute ta première carte.") }
+        if solid == 0 { return String(localized: "Aucune carte encore consolidée. \(total) cartes en attente.") }
+        if solid == total { return String(localized: "Tout ce paquet est consolidé.") }
+        return String(localized: "\(solid) / \(total) cartes consolidées")
     }
 
     private var meanStabilityLabel: String {
@@ -332,9 +331,10 @@ struct DeckDetailScreen: View {
     }
 
     private func statusLabel(for card: Card) -> String {
-        guard let next = card.nextReviewDate else { return "NOUVELLE" }
-        if next <= .now { return "À RÉVISER" }
-        return "PRÉVUE \(Self.dateFormatter.string(from: next).uppercased())"
+        guard let next = card.nextReviewDate else { return String(localized: "NOUVELLE") }
+        if next <= .now { return String(localized: "À RÉVISER") }
+        let dateStr = next.formatted(.dateTime.day().month(.abbreviated)).uppercased()
+        return String(localized: "PRÉVUE \(dateStr)")
     }
 
     private func softDelete(_ card: Card) {
@@ -349,10 +349,4 @@ struct DeckDetailScreen: View {
         }
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.dateFormat = "d MMM"
-        return f
-    }()
 }

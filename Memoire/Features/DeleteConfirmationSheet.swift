@@ -12,34 +12,34 @@ enum DeleteTarget {
 
     var title: String {
         switch self {
-        case .card: "Supprimer cette carte ?"
-        case .deck: "Supprimer ce paquet ?"
+        case .card: String(localized: "Supprimer cette carte ?")
+        case .deck: String(localized: "Supprimer ce paquet ?")
         }
     }
 
     var message: String {
         switch self {
         case .card(let name):
-            "« \(name) » sera supprimée de façon irréversible."
+            String(localized: "« \(name) » sera supprimée de façon irréversible.")
         case .deck(let name, 0):
-            "« \(name) » sera supprimé de façon irréversible."
+            String(localized: "« \(name) » sera supprimé de façon irréversible.")
         case .deck(let name, 1):
-            "« \(name) » et sa carte seront supprimés de façon irréversible."
+            String(localized: "« \(name) » et sa carte seront supprimés de façon irréversible.")
         case .deck(let name, let count):
-            "« \(name) » et ses \(count) cartes seront supprimés de façon irréversible."
+            String(localized: "« \(name) » et ses \(count) cartes seront supprimés de façon irréversible.")
         }
     }
 
     var confirmAccessibilityLabel: String {
         switch self {
         case .card(let name):
-            "Supprimer définitivement \(name)"
+            String(localized: "Supprimer définitivement \(name)")
         case .deck(let name, 0):
-            "Supprimer définitivement \(name)"
+            String(localized: "Supprimer définitivement \(name)")
         case .deck(let name, 1):
-            "Supprimer définitivement \(name) et sa carte"
+            String(localized: "Supprimer définitivement \(name) et sa carte")
         case .deck(let name, let count):
-            "Supprimer définitivement \(name) et ses \(count) cartes"
+            String(localized: "Supprimer définitivement \(name) et ses \(count) cartes")
         }
     }
 }

@@ -219,15 +219,17 @@ struct ReviewScreen: View {
             session.rate(rating, in: context)
         } label: {
             VStack(spacing: 4) {
+                Spacer(minLength: 0)
                 Image(systemName: rating.glyph)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(rating.tint)
                 Text(rating.label)
                     .font(.sans(14, weight: .semibold))
                     .foregroundStyle(Color.textPrimary)
+                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .frame(height: 60, alignment: .center)
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
             .memoireSurface(
                 in: .rect(cornerRadius: 14),
                 tint: rating.tint

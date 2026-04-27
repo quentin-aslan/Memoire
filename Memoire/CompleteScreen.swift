@@ -143,44 +143,57 @@ extension CompletionInsight {
             + registerThree() + registerThree()
     }
 
-    // R1 — descriptive
+    // R1 — descriptive. The catalog handles plural variation per locale.
     private static func registerOne(n: Int, now: Date) -> [CompletionInsight] {
-        let cards = n == 1 ? "carte" : "cartes"
         let isMorning = Calendar.current.component(.hour, from: now) < 14
         return [
-            CompletionInsight(id: "r1.consolidated",   text: "\(n) \(cards) consolidées aujourd'hui."),
-            CompletionInsight(id: "r1.session_done",   text: "Session terminée. \(n) \(cards) revues."),
-            CompletionInsight(id: "r1.behind_you",     text: "\(n) \(cards) derrière toi."),
+            CompletionInsight(id: "r1.consolidated",
+                              text: String(localized: "\(n) cartes consolidées aujourd'hui.")),
+            CompletionInsight(id: "r1.session_done",
+                              text: String(localized: "Session terminée. \(n) cartes revues.")),
+            CompletionInsight(id: "r1.behind_you",
+                              text: String(localized: "\(n) cartes derrière toi.")),
             CompletionInsight(id: isMorning ? "r1.morning" : "r1.evening",
                               text: isMorning
-                                ? "Tu as bouclé \(n) \(cards) ce matin."
-                                : "Tu as bouclé \(n) \(cards) ce soir."),
-            CompletionInsight(id: "r1.close_book",     text: "\(n) \(cards) — tu peux refermer.")
+                                ? String(localized: "Tu as bouclé \(n) cartes ce matin.")
+                                : String(localized: "Tu as bouclé \(n) cartes ce soir.")),
+            CompletionInsight(id: "r1.close_book",
+                              text: String(localized: "\(n) cartes — tu peux refermer."))
         ]
     }
 
     // R2 — interpretive (drops sentences that need cross-session deltas; we
     // ship the 4 that work with just `n`).
     private static func registerTwo(n: Int) -> [CompletionInsight] {
-        let cards = n == 1 ? "carte" : "cartes"
         return [
-            CompletionInsight(id: "r2.gained_solid",   text: "\(n) \(cards) ont gagné en solidité aujourd'hui."),
-            CompletionInsight(id: "r2.holds_better",   text: "Ton paquet tient un peu mieux qu'hier."),
-            CompletionInsight(id: "r2.come_back_later", text: "Ces \(n) \(cards) reviendront plus tard cette fois."),
-            CompletionInsight(id: "r2.extends_gap",    text: "Mémoire prolonge l'écart sur \(n) \(cards)."),
-            CompletionInsight(id: "r2.responds_well",  text: "Sur ces \(n) \(cards), ta mémoire répond bien.")
+            CompletionInsight(id: "r2.gained_solid",
+                              text: String(localized: "\(n) cartes ont gagné en solidité aujourd'hui.")),
+            CompletionInsight(id: "r2.holds_better",
+                              text: String(localized: "Ton paquet tient un peu mieux qu'hier.")),
+            CompletionInsight(id: "r2.come_back_later",
+                              text: String(localized: "Ces \(n) cartes reviendront plus tard cette fois.")),
+            CompletionInsight(id: "r2.extends_gap",
+                              text: String(localized: "Mémoire prolonge l'écart sur \(n) cartes.")),
+            CompletionInsight(id: "r2.responds_well",
+                              text: String(localized: "Sur ces \(n) cartes, ta mémoire répond bien."))
         ]
     }
 
     // R3 — gentle pedagogy. No substitutions; pure copy.
     private static func registerThree() -> [CompletionInsight] {
         [
-            CompletionInsight(id: "r3.brings_back",     text: "Mémoire ramènera ces cartes pile avant que tu ne les oublies."),
-            CompletionInsight(id: "r3.no_force",        text: "Tu n'as rien à mémoriser de force — Mémoire programme le retour."),
-            CompletionInsight(id: "r3.invisible_work", text: "Le travail invisible se passe entre les sessions."),
-            CompletionInsight(id: "r3.spacing_grows",  text: "Plus tu reviens, plus l'espacement grandit."),
-            CompletionInsight(id: "r3.gap_makes_memory", text: "C'est l'écart entre les révisions qui fait la mémoire."),
-            CompletionInsight(id: "r3.holds_longer",   text: "Ce que tu retrouves aujourd'hui tiendra plus longtemps.")
+            CompletionInsight(id: "r3.brings_back",
+                              text: String(localized: "Mémoire ramènera ces cartes pile avant que tu ne les oublies.")),
+            CompletionInsight(id: "r3.no_force",
+                              text: String(localized: "Tu n'as rien à mémoriser de force — Mémoire programme le retour.")),
+            CompletionInsight(id: "r3.invisible_work",
+                              text: String(localized: "Le travail invisible se passe entre les sessions.")),
+            CompletionInsight(id: "r3.spacing_grows",
+                              text: String(localized: "Plus tu reviens, plus l'espacement grandit.")),
+            CompletionInsight(id: "r3.gap_makes_memory",
+                              text: String(localized: "C'est l'écart entre les révisions qui fait la mémoire.")),
+            CompletionInsight(id: "r3.holds_longer",
+                              text: String(localized: "Ce que tu retrouves aujourd'hui tiendra plus longtemps."))
         ]
     }
 }

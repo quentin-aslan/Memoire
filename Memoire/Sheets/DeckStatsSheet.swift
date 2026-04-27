@@ -12,12 +12,6 @@ struct DeckStatsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showFraicheurSheet: Bool = false
 
-    private static let weekdayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.dateFormat = "EEEE"
-        return f
-    }()
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -88,7 +82,7 @@ struct DeckStatsSheet: View {
                 .font(.sans(15))
                 .foregroundStyle(Color.textReading)
             Spacer()
-            Text("\(count) " + (count == 1 ? "carte" : "cartes"))
+            Text(String(localized: "\(count) cartes"))
                 .font(.sans(15, weight: .medium))
                 .foregroundStyle(Color.textReading)
                 .monospacedDigit()
@@ -119,9 +113,9 @@ struct DeckStatsSheet: View {
     private var thisWeekSentence: String {
         let n = deck.dueThisWeek()
         switch n {
-        case 0: return "Rien à revoir cette semaine."
-        case 1: return "Environ 1 carte à revoir cette semaine."
-        default: return "Environ \(n) cartes à revoir cette semaine."
+        case 0: return String(localized: "Rien à revoir cette semaine.")
+        case 1: return String(localized: "Environ 1 carte à revoir cette semaine.")
+        default: return String(localized: "Environ \(n) cartes à revoir cette semaine.")
         }
     }
 
@@ -149,8 +143,10 @@ struct DeckStatsSheet: View {
 
     private func forecastRow(dayOffset: Int, count: Int) -> some View {
         let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: .now) ?? .now
-        let label = dayOffset == 0 ? "Aujourd'hui" : Self.weekdayFormatter.string(from: date).capitalized
-        let valueText = count == 0 ? "—" : "~\(count) " + (count == 1 ? "carte" : "cartes")
+        let label = dayOffset == 0
+            ? String(localized: "Aujourd'hui")
+            : date.formatted(.dateTime.weekday(.wide)).capitalized
+        let valueText = count == 0 ? "—" : String(localized: "~\(count) cartes")
         return HStack {
             Text(label)
                 .font(.sans(15))
