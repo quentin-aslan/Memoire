@@ -71,9 +71,8 @@ enum DailyQueue {
             .min()
     }
 
-    /// Returns (date, cardCount) for each future day where review cards are due,
-    /// up to `days` days ahead. New cards (fsrsReps == 0) are excluded — their
-    /// introduction day is unpredictable without session context.
+    // New cards (fsrsReps == 0) are excluded — their introduction day depends on
+    // session context (dailyNewCards budget) and can't be projected ahead.
     static func futureDueDates(
         allCards: [Card],
         days: Int = 30,
