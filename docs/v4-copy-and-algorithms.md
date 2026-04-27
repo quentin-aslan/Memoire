@@ -339,18 +339,23 @@ Source : `OnboardingFlow.NamePage`.
 ### Copy
 
 ```
+Sous-titre (italique) :  On va faire connaissance.
 Titre :                  Comment tu t'appelles ?
 Placeholder TextField :  Ton prénom
 ```
 
 Pas de helper text — la question parle d'elle-même, le bouton « Passer » signale que c'est optionnel.
 
+### Animation
+
+Cascade fade-in 280 ms easeOut, 60 ms entre chaque bloc (sous-titre → titre → champ). Identique à `TwoWordsPage`. `prefersReducedMotion` désactive la cascade.
+
 ### Comportement
 
 - Champ optionnel — laisser vide ne bloque pas la progression.
 - Binding identique à `SettingsScreen` : `get: { prefs.firstName ?? "" }`, `set: { prefs.firstName = $0 }`.
 - Sanitisation gérée par `AppPreferences.firstName.didSet` (trim + 20 chars max).
-- `.submitLabel(.done)` — le clavier se ferme à la validation.
+- Clavier dismissé via `KeyboardDismisser.dismiss()` (UIKit `resignFirstResponder`) sur : submit (OK/Entrer), tap hors champ, tap CTA, swipe de page. `@FocusState` seul est unreliable dans un `TabView` paginé.
 
 ### Position
 
