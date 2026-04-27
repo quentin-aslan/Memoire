@@ -39,6 +39,29 @@ final class AppPreferences {
         }
     }
 
+    // Cumulative count of "À revoir" ratings across all sessions. Drives the
+    // permission-to-fail toast (brief §2.4) — shown once when this hits 3.
+    var cumulativeAgainCount: Int = UserDefaults.standard.integer(forKey: Keys.cumulativeAgainCount) {
+        didSet { UserDefaults.standard.set(cumulativeAgainCount, forKey: Keys.cumulativeAgainCount) }
+    }
+
+    // One-shot flag — the toast is shown at most once in the user's lifetime.
+    var permissionToFailToastShown: Bool = UserDefaults.standard.bool(forKey: Keys.permissionToFailToastShown) {
+        didSet { UserDefaults.standard.set(permissionToFailToastShown, forKey: Keys.permissionToFailToastShown) }
+    }
+
+    // ID of the last completion-screen sentence shown — avoids repeating the
+    // same insight in consecutive sessions (brief §4.2).
+    var lastShownInsightID: String? = UserDefaults.standard.string(forKey: Keys.lastShownInsightID) {
+        didSet {
+            if let value = lastShownInsightID {
+                UserDefaults.standard.set(value, forKey: Keys.lastShownInsightID)
+            } else {
+                UserDefaults.standard.removeObject(forKey: Keys.lastShownInsightID)
+            }
+        }
+    }
+
     static func sanitize(_ value: String?) -> String? {
         guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
             return nil
@@ -52,6 +75,9 @@ final class AppPreferences {
         static let notificationHour = "prefs.notificationHour"
         static let dailyNewCards = "prefs.dailyNewCards"
         static let firstName = "prefs.firstName"
+        static let cumulativeAgainCount = "prefs.cumulativeAgainCount"
+        static let permissionToFailToastShown = "prefs.permissionToFailToastShown"
+        static let lastShownInsightID = "prefs.lastShownInsightID"
     }
 }
 

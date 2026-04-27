@@ -7,11 +7,14 @@ enum Rating: Int, CaseIterable, Identifiable {
 
     var id: Int { rawValue }
 
+    // User-facing labels. "Moyen" / "Facile" were ambiguous in French (sounded
+    // like a value judgment) — switched to "Connu" (I knew it, with effort) /
+    // "Évident" (instantly, push the interval out) to clarify the FSRS intent.
     var label: String {
         switch self {
         case .again: "À revoir"
-        case .good:  "Moyen"
-        case .easy:  "Facile"
+        case .good:  "Connu"
+        case .easy:  "Évident"
         }
     }
 

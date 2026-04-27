@@ -35,6 +35,25 @@ extension Card {
         nextReviewDate = packageCard.due
     }
 
+    /// FSRS v5 retrievability — probability of recall right now given elapsed
+    /// time since last review and current stability.
+    /// Formula: R(t, S) = (1 + t / (9 · S))⁻¹ with t in days.
+    /// Returns 1.0 for cards never reviewed (treated as fresh).
+    var currentRetrievability: Double {
+        guard let lastReview = fsrsLastReview, fsrsStability > 0 else { return 1.0 }
+        let elapsedDays = Date.now.timeIntervalSince(lastReview) / 86_400
+        return pow(1 + elapsedDays / (9 * fsrsStability), -1)
+    }
+
+    /// Hypothetical next-review date if the user rated this card now with `rating`.
+    /// Returns nil for cards still in learning steps (FSRS isn't scheduling yet —
+    /// the learning step ladder is driven by ReviewSession, not the scheduler).
+    /// Used by CardDetailScreen for the "Prochain palier" preview line.
+    func projectedNextReviewDate(rating: Rating, using scheduler: FSRSScheduler = FSRSScheduler()) -> Date? {
+        guard learningStep == -1 else { return nil }
+        return scheduler.previewSchedule(card: self, rating: rating).due
+    }
+
     // MARK: - Status ↔ Int conversion
     // Card.fsrsState stores an Int for SwiftData compatibility; the package uses
     // a String-backed Status enum. FSRSState bridges the two.

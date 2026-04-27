@@ -8,16 +8,15 @@ struct ReviewScreen: View {
     @Environment(\.appPreferences) private var prefs
 
     @Bindable var session: ReviewSession
+    @State private var showPermissionToFailToast: Bool = false
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             Color.bgPrimary.ignoresSafeArea()
 
             if session.isComplete {
                 CompleteScreen(
                     uniqueCount: session.uniqueReviewedCount,
-                    duration: session.sessionDuration,
-                    accuracy: session.accuracy,
                     onDone: { dismiss() }
                 )
             } else if let card = session.currentCard {
@@ -39,6 +38,10 @@ struct ReviewScreen: View {
                     .font(.serif(22, weight: .medium))
                     .foregroundStyle(Color.textSecondary)
             }
+
+            // Permission-to-fail toast — top safe area + 12pt, auto-dismiss 4s
+            ReviewToast(visible: $showPermissionToFailToast)
+                .padding(.top, 12)
         }
         .animation(.easeInOut(duration: 0.25), value: session.isComplete)
         .sensoryFeedback(.selection, trigger: session.flipped)
@@ -47,6 +50,24 @@ struct ReviewScreen: View {
         .onChange(of: session.isComplete) { _, isComplete in
             guard isComplete else { return }
             WidgetSnapshotWriter.refresh(context: context, prefs: prefs)
+        }
+        .onChange(of: session.completedRatings.count) { _, _ in
+            evaluateToastTrigger()
+        }
+    }
+
+    // Permission-to-fail toast — shown once when the user has accumulated 3
+    // "À revoir" across their lifetime of using the app. Triggers between
+    // cards (after the rating tap, before the next card flips into view) so
+    // it doesn't sit on top of an active card.
+    private func evaluateToastTrigger() {
+        guard session.completedRatings.last == .again,
+              prefs.cumulativeAgainCount >= 3,
+              !prefs.permissionToFailToastShown
+        else { return }
+        prefs.permissionToFailToastShown = true
+        withAnimation(.easeOut(duration: 0.32)) {
+            showPermissionToFailToast = true
         }
     }
 
