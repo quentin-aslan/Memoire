@@ -75,6 +75,9 @@ final class ReviewSession: Identifiable {
             }
             if rating == .again {
                 cards.append(card)
+                // Lifetime cumulative count — drives the permission-to-fail toast
+                // (brief §2.4). UI-only state, lives in AppPreferences.
+                AppPreferences.shared.cumulativeAgainCount += 1
             } else {
                 reviewedCardIDs.insert(card.id)
             }

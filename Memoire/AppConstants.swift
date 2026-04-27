@@ -19,9 +19,11 @@ enum AppConstants {
         static let minRetention: Double     = 0.80
         static let maxRetention: Double     = 0.95
 
-        // Thresholds for the Facile / Moyenne / Difficile labels in CardDetailScreen
-        static let easyDifficultyThreshold: Double   = 4.0
-        static let mediumDifficultyThreshold: Double = 7.0
+        // Stability bands used for the deck composition bar (Stables / En consolidation
+        // / À ramener) and the "Prochain palier" framing on CardDetailScreen. Aligned
+        // with Anki "mature" cards convention (≥21d) and the brief §1.10.
+        static let solidStabilityDays: Double         = 21
+        static let consolidatingStabilityDays: Double = 7
 
         // TDAH: prior honnête pour estimer la durée d'une session. 8-12 s/carte en
         // steady-state, on vise 12 pour sous-promettre (évite la honte quand on déborde).
@@ -33,7 +35,7 @@ enum AppConstants {
     }
 
     enum Onboarding {
-        static let pageCount = 4
+        static let pageCount = 5
     }
 
     enum LearningSteps {

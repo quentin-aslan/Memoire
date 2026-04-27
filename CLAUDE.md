@@ -183,6 +183,15 @@ Self.logger.error("Message: \(err.localizedDescription)")
 
 Jamais `try?` qui mange silencieusement. `do/catch` explicite ou `throws` propagé.
 
+### Copy & seuils — synchroniser avec `docs/v4-copy-and-algorithms.md`
+
+Toute string figée affichée à l'utilisateur (status words, insight sentences, sheets, onboarding, toast, completion registres, headline deck, etc.) **et** tout seuil/règle algorithmique (résolution status, bandes de stability, formatDuration, conditions de toast, tirage pondéré) sont indexés dans `docs/v4-copy-and-algorithms.md`.
+
+À chaque modification de copy ou de seuil dans le code :
+- **Réplique le changement dans le doc** (même phrase, même règle).
+- Si tu ajoutes une nouvelle copy/règle, **incrémente le doc** plutôt que de la laisser flotter dans le code seul.
+- À la fin d'une feature, vérifie que le doc reflète bien l'état du code — c'est la source de vérité pour les refactors futurs.
+
 ### Commits
 
 Tout commit est authoré par **Quentin Aslan `<contact@quentinaslan.com>`**. Jamais `Claude <noreply@anthropic.com>` en author, jamais `Co-Authored-By: Claude`, aucune mention de Claude / Claude Code dans les messages ou PR descriptions.

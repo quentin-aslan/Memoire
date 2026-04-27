@@ -33,4 +33,18 @@ struct FSRSScheduler {
         )
         card.applyFSRS(result.postReviewCard)
     }
+
+    /// Returns the post-review FSRS state for a hypothetical rating without
+    /// mutating the card. Used by CardDetailScreen to preview the next interval
+    /// for the "Prochain palier" line.
+    func previewSchedule(card: Card, rating: Rating, at reviewTime: Date = .now) -> SwiftFSRS.Card {
+        let snapshot = card.packageSnapshot()
+        let result = engine.schedule(
+            card: snapshot,
+            algorithm: algorithm,
+            reviewRating: rating.packageRating(),
+            reviewTime: reviewTime
+        )
+        return result.postReviewCard
+    }
 }

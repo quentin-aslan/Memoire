@@ -19,6 +19,7 @@ struct OnboardingFlow: View {
                     FlipExplainerPage().tag(1)
                     SensitivityPage().tag(2)
                     NotificationPage().tag(3)
+                    TwoWordsPage().tag(4)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
@@ -61,7 +62,7 @@ struct OnboardingFlow: View {
                     finishOnboarding()
                 }
             } label: {
-                Text(pageIndex < totalPages - 1 ? "Continuer" : "Commencer")
+                Text(ctaLabel)
                     .font(.uiButton)
                     .foregroundStyle(Color.bgPrimary)
                     .frame(maxWidth: .infinity)
@@ -78,6 +79,16 @@ struct OnboardingFlow: View {
             .padding(.horizontal, 20)
         }
         .padding(.bottom, 32)
+    }
+
+    // CTA copy follows the page being shown — keep the existing
+    // Continuer/Commencer pair for pages 0–3, switch to "J'ai compris" on the
+    // new TwoWordsPage so the wording matches the brief §2.1.
+    private var ctaLabel: String {
+        switch pageIndex {
+        case totalPages - 1: return "J'ai compris"
+        default:             return "Continuer"
+        }
     }
 
     private func finishOnboarding() {
@@ -359,5 +370,79 @@ private struct NotificationPage: View {
         } catch {
             permissionStatus = .denied
         }
+    }
+}
+
+// Onboarding écran 4 — "Deux mots à connaître". Introduces Solidité + Fraîcheur,
+// the two public-facing terms used everywhere else in the app. Only pedagogical
+// surface besides the two ⓘ half-sheets, per doctrine A (FSRS stays invisible).
+
+private struct TwoWordsPage: View {
+    @State private var appeared: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 28) {
+            Spacer().frame(height: 16)
+
+            block(delay: 0) {
+                Text("Deux mots à connaître")
+                    .font(.serif(32, weight: .semibold))
+                    .foregroundStyle(Color.textReading)
+                    .lineSpacing(2)
+            }
+
+            block(delay: 1) {
+                Text("Mémoire mesure deux choses pour chaque carte.")
+                    .font(.serif(18))
+                    .foregroundStyle(Color.textReading)
+                    .lineSpacing(5)
+            }
+
+            block(delay: 2) {
+                Text("La solidité : à quel point un souvenir tient. Plus tu retrouves une carte, plus elle se solidifie.")
+                    .font(.serif(18))
+                    .foregroundStyle(Color.textReading)
+                    .lineSpacing(5)
+            }
+
+            block(delay: 3) {
+                Text("La fraîcheur : la probabilité que tu t'en souviennes encore aujourd'hui. Quand elle baisse, Mémoire la ramène.")
+                    .font(.serif(18))
+                    .foregroundStyle(Color.textReading)
+                    .lineSpacing(5)
+            }
+
+            block(delay: 4) {
+                Text("Tu n'as rien à régler.\nMémoire s'en occupe.")
+                    .font(.serif(18))
+                    .italic()
+                    .foregroundStyle(Color.gold.opacity(0.8))
+                    .lineSpacing(3)
+                    .padding(.top, 4)
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 24)
+        .onAppear {
+            if reduceMotion {
+                appeared = true
+            } else {
+                withAnimation(.easeOut(duration: 0.28)) { appeared = true }
+            }
+        }
+    }
+
+    // Cascade fade-in: each block enters 60ms after the previous one. With
+    // reduceMotion the cascade is skipped (everything appears immediately).
+    @ViewBuilder
+    private func block<C: View>(delay step: Int, @ViewBuilder content: () -> C) -> some View {
+        let staggered = Double(step) * 0.06
+        content()
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared || reduceMotion ? 0 : 12)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.28).delay(staggered), value: appeared)
     }
 }
