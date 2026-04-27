@@ -159,6 +159,7 @@ TRANSLATIONS = {
     "Action irréversible": "Irreversible action",
     # NotificationScheduler
     "Vos révisions vous attendent": "Your reviews are waiting",
+    "%@, vos révisions vous attendent": "%@, your reviews are waiting",
     "Quelques cartes aujourd'hui — 5 minutes suffisent.": "A few cards today — 5 minutes is enough.",
     # DecksScreen
     "Paquets": "Decks",
