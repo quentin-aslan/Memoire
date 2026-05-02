@@ -510,7 +510,10 @@ Footnote (rétractée) :
 **Fichiers** : `Services/NotificationScheduler.swift`, `Scheduling/DailyQueue.swift`
 
 ### Règle de déclenchement
-Une notification est planifiée uniquement pour les jours où `count > 0` cartes sont dues (`fsrsReps > 0 && !isSoftDeleted && nextReviewDate <= horizon`). Les cartes nouvelles (`fsrsReps == 0`) sont exclues : leur jour d'introduction dépend du contexte de session et ne peut pas être prédit à l'avance.
+Une notification est planifiée uniquement pour les jours où `count > 0` cartes sont dues.
+
+- **Slot d'aujourd'hui** : `fsrsReps > 0 && !isSoftDeleted && nextReviewDate <= horizon` (overdue + due-today bucketisés dans le startOfToday) **+** cartes nouvelles `fsrsReps == 0 && !isSoftDeleted` cappées à `prefs.dailyNewCards`. Mirroir exact de ce que `DailyQueue.build()` compte pour le Home.
+- **Jours futurs (J+1…J+30)** : seulement les cartes `fsrsReps > 0 && !isSoftDeleted && nextReviewDate <= horizon`. Les cartes nouvelles ne peuvent pas être projetées car le budget `dailyNewCards` se reset chaque jour et dépend du comportement utilisateur entre J et J+N.
 
 Les cartes en retard (`nextReviewDate < startOfToday`) sont bucketisées dans le slot d'**aujourd'hui** plutôt que dans leur jour d'origine — sans ça, elles seraient silencieusement ignorées alors que `DailyQueue.build()` les compte comme actionnables. Le body de la notif s'aligne ainsi sur ce que l'écran Home affiche.
 
@@ -529,6 +532,8 @@ Le body réutilise `HomeCopy.sessionTimeEstimate(cardsDue:)` — mêmes règles 
 ### Identifiants
 `"memoire.dailyReview.{i}"` où `i` = index dans le tableau trié par date (0…29).
 Constante : `AppConstants.Notifications.dailyReviewIDPrefix`.
+
+**Cleanup legacy** : `refresh()` retire aussi l'ID nu `"memoire.dailyReview"` (sans suffixe) avant de replanifier — c'était l'ID utilisé pré-refactor par un trigger `repeats: true` qui restait pendant indéfiniment chez les utilisateurs ayant migré, déclenchant une seconde notif fantôme avec l'ancien copy `"5 minutes suffisent"`.
 
 ### Triggers de replanification
 Chaque appel à `NotificationScheduler.refresh(context:prefs:)` annule les 30 slots et replanifie depuis les données SwiftData courantes. Appelé :

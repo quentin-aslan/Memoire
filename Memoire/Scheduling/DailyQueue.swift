@@ -71,10 +71,12 @@ enum DailyQueue {
             .min()
     }
 
-    // New cards (fsrsReps == 0) are excluded — their introduction day depends on
-    // session context (dailyNewCards budget) and can't be projected ahead.
+    // Today's slot mirrors build() — overdue + due-today + new cards capped at dailyNewCards.
+    // Future days (J+1…J+N) only include fsrsReps > 0: the new-card budget resets each day
+    // and depends on user behavior between J and J+N, so it can't be projected ahead.
     static func futureDueDates(
         allCards: [Card],
+        dailyNewCards: Int,
         days: Int = 30,
         now: Date = .now,
         calendar: Calendar = .current
@@ -88,12 +90,16 @@ enum DailyQueue {
                   card.fsrsReps > 0,
                   let next = card.nextReviewDate,
                   next <= horizon else { continue }
-            // Overdue cards collapse into today's slot — Home counts them as actionable
-            // now via build(), so the notification body must match instead of silently
-            // dropping cards whose nextReviewDate is in the past.
             let day = max(startOfToday, calendar.startOfDay(for: next))
             grouped[day, default: 0] += 1
         }
+
+        let newCount = allCards.filter { !$0.isSoftDeleted && $0.fsrsReps == 0 }.count
+        let cappedNew = min(newCount, max(0, dailyNewCards))
+        if cappedNew > 0 {
+            grouped[startOfToday, default: 0] += cappedNew
+        }
+
         return grouped
             .sorted { $0.key < $1.key }
             .map { ($0.key, $0.value) }
