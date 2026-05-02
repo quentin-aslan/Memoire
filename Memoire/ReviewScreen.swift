@@ -158,7 +158,7 @@ struct ReviewScreen: View {
                     .frame(minHeight: geo.size.height)
                 }
                 .scrollBounceBehavior(.basedOnSize)
-                .scrollDisabled(side == .back && card.backDrawing?.isEmpty == false)
+                .scrollDisabled(side == .back && card.hasBackDrawing)
             }
 
             if side == .front {
