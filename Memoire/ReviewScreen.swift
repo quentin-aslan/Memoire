@@ -148,11 +148,18 @@ struct ReviewScreen: View {
     @ViewBuilder
     private func cardFace(card: Card, side: CardSide) -> some View {
         VStack(spacing: 22) {
-            Spacer(minLength: 0)
-
-            cardFaceContent(card: card, side: side)
-
-            Spacer(minLength: 0)
+            GeometryReader { geo in
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        cardFaceContent(card: card, side: side)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(minHeight: geo.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollDisabled(side == .back && card.backDrawing?.isEmpty == false)
+            }
 
             if side == .front {
                 HStack(spacing: 6) {
