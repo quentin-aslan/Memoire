@@ -510,7 +510,9 @@ Footnote (rétractée) :
 **Fichiers** : `Services/NotificationScheduler.swift`, `Scheduling/DailyQueue.swift`
 
 ### Règle de déclenchement
-Une notification est planifiée uniquement pour les jours où `count > 0` cartes sont dues (`fsrsReps > 0 && !isSoftDeleted && nextReviewDate > now`). Les cartes nouvelles (`fsrsReps == 0`) sont exclues : leur jour d'introduction dépend du contexte de session et ne peut pas être prédit à l'avance.
+Une notification est planifiée uniquement pour les jours où `count > 0` cartes sont dues (`fsrsReps > 0 && !isSoftDeleted && nextReviewDate <= horizon`). Les cartes nouvelles (`fsrsReps == 0`) sont exclues : leur jour d'introduction dépend du contexte de session et ne peut pas être prédit à l'avance.
+
+Les cartes en retard (`nextReviewDate < startOfToday`) sont bucketisées dans le slot d'**aujourd'hui** plutôt que dans leur jour d'origine — sans ça, elles seraient silencieusement ignorées alors que `DailyQueue.build()` les compte comme actionnables. Le body de la notif s'aligne ainsi sur ce que l'écran Home affiche.
 
 ### Copy
 | Cas | Titre | Body |
