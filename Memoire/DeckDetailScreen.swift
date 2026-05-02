@@ -53,15 +53,13 @@ struct DeckDetailScreen: View {
         .navigationTitle(deck.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 if !sortedCards.isEmpty {
                     Button { showStatsSheet = true } label: {
                         Image(systemName: "chart.bar")
                     }
-                    .accessibilityLabel(Text("Statistiques du paquet"))
+                    .accessibilityLabel("Statistiques du paquet")
                 }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     editingCard = CardDraft(deckID: deck.id)
                 } label: {
