@@ -50,9 +50,15 @@ struct ReviewScreen: View {
         .onChange(of: session.isComplete) { _, isComplete in
             guard isComplete else { return }
             WidgetSnapshotWriter.refresh(context: context, prefs: prefs)
+            Task { await NotificationScheduler.refresh(context: context, prefs: prefs) }
         }
         .onChange(of: session.completedRatings.count) { _, _ in
             evaluateToastTrigger()
+        }
+        // Catches dismiss-mid-session — review changed nextReviewDate / fsrsReps
+        // even partially, the next notification body must reflect the new counts.
+        .onDisappear {
+            Task { await NotificationScheduler.refresh(context: context, prefs: prefs) }
         }
     }
 

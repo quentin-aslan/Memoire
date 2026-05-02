@@ -4,6 +4,7 @@ import SwiftUI
 
 struct DeckDetailScreen: View {
     @Environment(\.modelContext) private var context
+    @Environment(\.appPreferences) private var prefs
     let deck: Deck
     let autoOpenCardEditor: Bool
     let onAutoOpenConsumed: (() -> Void)?
@@ -259,6 +260,7 @@ struct DeckDetailScreen: View {
         card.syncStatus = SyncStatus.pendingDelete.rawValue
         do {
             try context.save()
+            Task { await NotificationScheduler.refresh(context: context, prefs: prefs) }
         } catch {
             Self.logger.error("Failed to soft-delete card: \(error.localizedDescription)")
         }
