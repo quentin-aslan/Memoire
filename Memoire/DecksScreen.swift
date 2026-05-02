@@ -5,6 +5,7 @@ import SwiftUI
 struct DecksScreen: View {
     @Environment(\.modelContext) private var context
     @Environment(\.deckCreation) private var deckCreation
+    @Environment(\.appPreferences) private var prefs
     @Query(sort: \Deck.position) private var allDecks: [Deck]
 
     @State private var editingDeck: DeckDraft?
@@ -244,6 +245,7 @@ struct DecksScreen: View {
         deck.syncStatus = pendingDelete
         do {
             try context.save()
+            Task { await NotificationScheduler.refresh(context: context, prefs: prefs) }
         } catch {
             Self.logger.error("Failed to soft-delete deck cascade: \(error.localizedDescription)")
         }

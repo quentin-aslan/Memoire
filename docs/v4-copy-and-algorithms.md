@@ -530,9 +530,20 @@ Constante : `AppConstants.Notifications.dailyReviewIDPrefix`.
 
 ### Triggers de replanification
 Chaque appel à `NotificationScheduler.refresh(context:prefs:)` annule les 30 slots et replanifie depuis les données SwiftData courantes. Appelé :
+- Au cold launch (`.task` dans `MemoireApp`)
 - Au retour en `.active` (app foreground) dans `MemoireApp`
 - Au changement de `prefs.notificationHour` dans `MemoireApp`
 - À la fin de l'onboarding dans `OnboardingFlow`
+- À la fin d'une session de révision (`ReviewScreen.onChange(isComplete)` + `onDisappear` pour couvrir les dismiss mid-session)
+- Après sauvegarde dans `CardEditorSheet.save()` (création/édition de carte)
+- Après soft-delete cascade dans `DecksScreen.softDelete(deck:)`
+- Après soft-delete dans `DeckDetailScreen.softDelete(card:)`
+- Après import de backup dans `SettingsScreen.importBackup(from:)`
+
+**Invariant** : tout call site qui mute `Card.nextReviewDate`, `Card.fsrsReps`, ou `Card.isSoftDeleted` DOIT appeler `refresh()`. C'est la seule garantie que le content figé des notifs reste cohérent jusqu'au déclenchement.
+
+### Limitation connue (V4)
+Le content de la notif est figé au moment du schedule (iOS local notifs n'évaluent pas SwiftData au fire-time). Si l'app est force-quit pendant une session ou reste backgroundée plusieurs jours sans aucun trigger de refresh, le `count` peut diverger de la réalité. Mitigation : l'invariant ci-dessus garantit qu'au prochain `.active` ou cold launch, l'état se resync. Pas de fix possible sans backend (V1.1) ou Notification Service Extension (rejeté pour V4 — la NSE ne peut pas accéder à SwiftData et ne peut pas annuler une notif).
 
 ### ⚠️ À remplacer en V1.1
 Ce mécanisme est un workaround entièrement local. Quand Supabase + APNs server-side atterrissent, la logique de déclenchement migre côté backend et `NotificationScheduler.refresh` peut être supprimé. Les observers `onChange` dans `MemoireApp` et le call site `OnboardingFlow.finishOnboarding()` peuvent être simplifiés. Aucune migration de données utilisateur requise (notifications locales uniquement).

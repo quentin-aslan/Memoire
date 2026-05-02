@@ -5,6 +5,7 @@ import SwiftUI
 struct CardEditorSheet: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.appPreferences) private var prefs
 
     @State private var draft: CardDraft
     @FocusState private var focusedField: Field?
@@ -390,6 +391,7 @@ struct CardEditorSheet: View {
 
             try context.save()
             savedCounter += 1
+            Task { await NotificationScheduler.refresh(context: context, prefs: prefs) }
             dismiss()
         } catch {
             Self.logger.error("Failed to save card: \(error.localizedDescription)")

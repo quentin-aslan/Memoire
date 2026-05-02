@@ -289,6 +289,7 @@ struct SettingsScreen: View {
             let data = try Data(contentsOf: url)
             try BackupService.replaceAll(from: data, context: modelContext)
             backupAlert = "Import réussi."
+            Task { await NotificationScheduler.refresh(context: modelContext, prefs: prefs) }
         } catch {
             Self.backupLogger.error("Import failed: \(error.localizedDescription)")
             backupAlert = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
