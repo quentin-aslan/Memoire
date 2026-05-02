@@ -54,6 +54,14 @@ struct DeckDetailScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                if !sortedCards.isEmpty {
+                    Button { showStatsSheet = true } label: {
+                        Image(systemName: "chart.bar")
+                    }
+                    .accessibilityLabel(Text("Statistiques du paquet"))
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     editingCard = CardDraft(deckID: deck.id)
                 } label: {
@@ -99,15 +107,10 @@ struct DeckDetailScreen: View {
 
     private var listContent: some View {
         List {
-            Section {
-                heroCard
-                    .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 8, trailing: 20))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-
-                if !dueCardsForReview.isEmpty {
+            if !dueCardsForReview.isEmpty {
+                Section {
                     reviseCTA
-                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 16, trailing: 20))
+                        .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 16, trailing: 20))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                 }
@@ -145,75 +148,6 @@ struct DeckDetailScreen: View {
         .listStyle(.insetGrouped)
     }
 
-    // MARK: - Hero card with composition bar
-
-    private var heroCard: some View {
-        // Single tally pass instead of three (one per band).
-        let comp = deck.composition
-        return VStack(alignment: .leading, spacing: 14) {
-            Text(headlineText)
-                .font(.serif(22))
-                .foregroundStyle(Color.textReading)
-                .monospacedDigit()
-                .lineSpacing(2)
-
-            CompositionBar(solid: comp.solid, consolidating: comp.consolidating, toBack: comp.toBack)
-
-            VStack(spacing: 8) {
-                legendLine(color: CompositionBar.legendColors.solid, label: "Stables", count: comp.solid)
-                legendLine(color: CompositionBar.legendColors.consolidating, label: "En consolidation", count: comp.consolidating)
-                legendLine(color: CompositionBar.legendColors.toBack, label: "À ramener", count: comp.toBack)
-            }
-            .padding(.top, 2)
-
-            Rectangle().fill(Color.bgElevated.opacity(0.6)).frame(height: 0.5)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("À réviser cette semaine · \(deck.dueThisWeek())")
-                    .font(.sans(14))
-                    .foregroundStyle(Color.textSecondary)
-
-                Text("Solidité moyenne · \(meanStabilityLabel)")
-                    .font(.sans(14))
-                    .foregroundStyle(Color.textSecondary)
-            }
-
-            Rectangle().fill(Color.bgElevated.opacity(0.6)).frame(height: 0.5)
-
-            Button { showStatsSheet = true } label: {
-                HStack {
-                    Text("Voir le détail")
-                        .font(.sans(15, weight: .medium))
-                        .foregroundStyle(Color.textReading)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.textSecondary)
-                }
-                .frame(height: 28)
-                .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(20)
-        .background(Color.bgCard, in: .rect(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.24), radius: 14, y: 2)
-    }
-
-    private func legendLine(color: Color, label: String, count: Int) -> some View {
-        HStack(spacing: 8) {
-            Circle().fill(color).frame(width: 8, height: 8)
-            Text(label)
-                .font(.sans(12))
-                .foregroundStyle(Color.textSecondary)
-            Spacer()
-            Text("\(count)")
-                .font(.sans(12, weight: .medium))
-                .foregroundStyle(Color.textReading)
-                .monospacedDigit()
-        }
-    }
-
     private var reviseCTA: some View {
         Button {
             activeSession = ReviewSession(cards: dueCardsForReview)
@@ -221,23 +155,6 @@ struct DeckDetailScreen: View {
             Text("Réviser maintenant")
         }
         .buttonStyle(.primary(verticalPadding: 18))
-    }
-
-    // MARK: - Headline + mean stability copy
-
-    private var headlineText: String {
-        let total = deck.totalActiveCards
-        let solid = deck.solidCount
-
-        if total == 0 { return String(localized: "Ce paquet est vide. Ajoute ta première carte.") }
-        if solid == 0 { return String(localized: "Aucune carte encore consolidée. \(total) cartes en attente.") }
-        if solid == total { return String(localized: "Tout ce paquet est consolidé.") }
-        return String(localized: "\(solid) / \(total) cartes consolidées")
-    }
-
-    private var meanStabilityLabel: String {
-        guard let mean = deck.meanStability else { return "—" }
-        return formatDurationDays(max(1, Int(mean.rounded())))
     }
 
     // MARK: - Empty state

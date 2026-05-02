@@ -131,6 +131,7 @@ TRANSLATIONS = {
     "Solidité moyenne · %@": "Average solidity · %@",
     "Voir le détail": "See details",
     "Réviser maintenant": "Review now",
+    "Statistiques du paquet": "Deck statistics",
     "Ce paquet est vide. Ajoute ta première carte.": "This deck is empty. Add your first card.",
     "Tout ce paquet est consolidé.": "This whole deck is consolidated.",
     "%lld / %lld": "%1$lld / %2$lld",
