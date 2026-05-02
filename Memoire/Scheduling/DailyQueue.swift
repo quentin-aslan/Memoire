@@ -80,15 +80,18 @@ enum DailyQueue {
         calendar: Calendar = .current
     ) -> [(date: Date, count: Int)] {
         guard let horizon = calendar.date(byAdding: .day, value: days, to: now) else { return [] }
+        let startOfToday = calendar.startOfDay(for: now)
 
         var grouped: [Date: Int] = [:]
         for card in allCards {
             guard !card.isSoftDeleted,
                   card.fsrsReps > 0,
                   let next = card.nextReviewDate,
-                  next > now,
                   next <= horizon else { continue }
-            let day = calendar.startOfDay(for: next)
+            // Overdue cards collapse into today's slot — Home counts them as actionable
+            // now via build(), so the notification body must match instead of silently
+            // dropping cards whose nextReviewDate is in the past.
+            let day = max(startOfToday, calendar.startOfDay(for: next))
             grouped[day, default: 0] += 1
         }
         return grouped
