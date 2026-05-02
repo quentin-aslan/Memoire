@@ -14,11 +14,19 @@ enum NotificationScheduler {
             guard try await isAuthorized(promptIfNeeded: true) else { return }
 
             let center = UNUserNotificationCenter.current()
-            center.removePendingNotificationRequests(withIdentifiers: (0..<maxSlots).map(slotID))
+            // Legacy ID was the bare prefix with repeats:true — pre-099f25d installs
+            // still have a ghost daily notif scheduled under that ID that nothing else removes.
+            center.removePendingNotificationRequests(
+                withIdentifiers: [idPrefix] + (0..<maxSlots).map(slotID)
+            )
 
             let descriptor = FetchDescriptor<Card>(predicate: #Predicate { !$0.isSoftDeleted })
             let activeCards = try context.fetch(descriptor)
-            let futureDates = DailyQueue.futureDueDates(allCards: activeCards, days: maxSlots)
+            let futureDates = DailyQueue.futureDueDates(
+                allCards: activeCards,
+                dailyNewCards: prefs.dailyNewCards,
+                days: maxSlots
+            )
 
             guard !futureDates.isEmpty else {
                 logger.info("No cards due in the next \(maxSlots) days — no notifications scheduled")
@@ -107,11 +115,21 @@ enum NotificationScheduler {
             let activeCards = try context.fetch(descriptor)
             let now = Date.now
 
-            guard let next = DailyQueue.futureDueDates(allCards: activeCards, days: maxSlots)
-                .first(where: { entry in
+            let calendar = Calendar.current
+            let entries = DailyQueue.futureDueDates(
+                allCards: activeCards,
+                dailyNewCards: prefs.dailyNewCards,
+                days: maxSlots
+            )
+            // Prefer today's slot even after the configured hour has passed; only fall back
+            // to a future day if today has nothing due. Without this, after 18h the test
+            // button would silently jump to tomorrow's count.
+            let preview = entries.first(where: { calendar.isDateInToday($0.date) })
+                ?? entries.first(where: { entry in
                     guard let target = slotDate(for: entry.date, hour: prefs.notificationHour) else { return false }
                     return target > now
-                }) else {
+                })
+            guard let next = preview else {
                 logger.info("Test notification skipped — no future cards to preview")
                 return false
             }
