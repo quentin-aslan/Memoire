@@ -43,4 +43,9 @@ enum AppConstants {
     enum Support {
         static let contactEmail = "contact@quentinaslan.com"
     }
+
+    enum Backup {
+        static let currentSchemaVersion = 1
+        static let fileExtension = "memoire.json"
+    }
 }

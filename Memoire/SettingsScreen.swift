@@ -1,9 +1,28 @@
 import SwiftUI
+#if DEBUG
+import OSLog
+import SwiftData
+import UniformTypeIdentifiers
+#endif
 
 struct SettingsScreen: View {
     @Environment(\.appPreferences) private var prefs
     @Environment(\.openURL) private var openURL
     @FocusState private var firstNameFocused: Bool
+
+    #if DEBUG
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var isExporting = false
+    @State private var isImporting = false
+    @State private var pendingExport: BackupDocument?
+    @State private var backupAlert: String?
+
+    private static let debugLogger = Logger(
+        subsystem: AppConstants.Logging.subsystem,
+        category: "Settings"
+    )
+    #endif
 
     private static let mailSubject = "Mémoire — Bug / Question"
 
@@ -108,6 +127,18 @@ struct SettingsScreen: View {
                     Text("Rejouer l'onboarding")
                         .foregroundStyle(Color.stateAgain)
                 }
+
+                Button {
+                    prepareExport()
+                } label: {
+                    Text("Exporter la base (dev)")
+                }
+
+                Button {
+                    isImporting = true
+                } label: {
+                    Text("Importer une base (dev)")
+                }
             } header: {
                 Text("Debug")
                     .foregroundStyle(Color.gold)
@@ -118,6 +149,34 @@ struct SettingsScreen: View {
         .background(Color.bgPrimary)
         .navigationTitle("Réglages")
         .navigationBarTitleDisplayMode(.inline)
+        #if DEBUG
+        .fileExporter(
+            isPresented: $isExporting,
+            document: pendingExport,
+            contentType: .json,
+            defaultFilename: defaultBackupFilename()
+        ) { result in
+            handleExportResult(result)
+        }
+        .fileImporter(
+            isPresented: $isImporting,
+            allowedContentTypes: [.json]
+        ) { result in
+            handleImportResult(result)
+        }
+        .alert(
+            "Sauvegarde",
+            isPresented: Binding(
+                get: { backupAlert != nil },
+                set: { if !$0 { backupAlert = nil } }
+            ),
+            presenting: backupAlert
+        ) { _ in
+            Button("OK", role: .cancel) { backupAlert = nil }
+        } message: { message in
+            Text(message)
+        }
+        #endif
     }
 
     private var supportMailURL: URL? {
@@ -129,4 +188,61 @@ struct SettingsScreen: View {
         ]
         return components.url
     }
+
+    #if DEBUG
+    private func prepareExport() {
+        do {
+            let data = try BackupService.export(context: modelContext)
+            pendingExport = BackupDocument(data: data)
+            isExporting = true
+        } catch {
+            Self.debugLogger.error("Export failed: \(error.localizedDescription)")
+            backupAlert = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    private func handleExportResult(_ result: Result<URL, Error>) {
+        pendingExport = nil
+        switch result {
+        case .success(let url):
+            Self.debugLogger.info("Export saved to \(url.path, privacy: .public)")
+            backupAlert = "Sauvegarde enregistrée."
+        case .failure(let error):
+            Self.debugLogger.info("Export dismissed: \(error.localizedDescription)")
+        }
+    }
+
+    private func handleImportResult(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            importBackup(from: url)
+        case .failure(let error):
+            Self.debugLogger.info("Import dismissed: \(error.localizedDescription)")
+        }
+    }
+
+    private func importBackup(from url: URL) {
+        // L'URL du fileImporter est security-scoped : sans ce cycle, read() lève EPERM
+        // sur iCloud Drive ou tout provider tiers (Files, Dropbox, etc.).
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+
+        do {
+            let data = try Data(contentsOf: url)
+            try BackupService.replaceAll(from: data, context: modelContext)
+            backupAlert = "Import réussi."
+        } catch {
+            Self.debugLogger.error("Import failed: \(error.localizedDescription)")
+            backupAlert = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    private func defaultBackupFilename() -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        let stamp = formatter.string(from: .now).replacingOccurrences(of: ":", with: "-")
+        return "memoire-backup-\(stamp).\(AppConstants.Backup.fileExtension)"
+    }
+    #endif
 }
