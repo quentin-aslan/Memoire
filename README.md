@@ -101,9 +101,18 @@ Memoire/
 
 ---
 
+## Prerequisites
+
+- macOS 14.0+ (Sequoia or later recommended)
+- Xcode 26.0+ with the iOS 26 SDK
+- iOS 18.0+ Simulator runtime
+- `swift-fsrs` is auto-resolved by Xcode via Swift Package Manager — no manual setup
+
+---
+
 ## Build & run
 
-The repo folder is spelled `Mémoire` (with accent) — but the `.xcodeproj`, target, and scheme are all spelled `Memoire` (no accent).
+> ⚠️ **Naming gotcha** — the **repo folder** is `Mémoire` (with accent), but the `.xcodeproj`, target, and scheme are all spelled `Memoire` (no accent). Don't mix them up.
 
 ```bash
 # App build (simulator, no signing)
@@ -181,9 +190,24 @@ Whenever you add a user-facing string, update `scripts/sync-xcstrings.py` and ru
 
 ---
 
+## Engineering highlights
+
+A short tour of the more substantive choices — see [`docs/adr/`](docs/adr/) for full context, considered alternatives, and consequences.
+
+- **Single Liquid Glass entry point** — the `.memoireSurface` modifier respects `accessibilityReduceTransparency`, Calm Mode, and iOS 26 availability automatically. Editorial content (cards, lists, long text) is forbidden from glass to preserve WCAG AAA contrast. See [ADR-0002](docs/adr/0002-liquid-glass-chrome-only.md).
+- **App-layer learning steps before FSRS graduation** — `ReviewSession` intercepts `.again` / `.good` ratings and applies fixed steps `[10 min → 1 h → 1 d]` before delegating to FSRS. The `swift-fsrs` package stays untouched. See [ADR-0007](docs/adr/0007-learning-steps.md).
+- **Draft-struct editing pattern** — value-type `DeckDraft` / `CardDraft`, never `@Bindable` directly on a `@Model`. The commit happens only on explicit Save. See [ADR-0004](docs/adr/0004-draft-struct-editing.md).
+- **Sync-ready soft-delete** — every model carries `isSoftDeleted`, `deletedAt`, `syncVersion`, `syncStatus`. The schema is V1.1-ready before Supabase lands. See [ADR-0003](docs/adr/0003-swiftdata-supabase-deferred.md).
+- **Bilingual via Apple String Catalogs** — FR source, EN script-synced via `python3 scripts/sync-xcstrings.py`. `Localizable.xcstrings` is never edited by hand; CLDR plural rules live in the catalog.
+- **ADHD-aware UX** — VoiceOver labels on every interactive element, Reduce Motion via custom flip override, Reduce Transparency hardening, photophobia-aware Calm Mode, anti-flicker streak. See [ADR-0008](docs/adr/0008-home-ux-tdah-pass.md).
+
+---
+
 ## Status & license
 
 This is a **personal portfolio project**, not open source. The source is publicly visible for reference only — **no license is granted** for use, copying, modification, or redistribution. Issues and pull requests from outside contributors are not accepted at this time. To discuss any use of the code, contact me directly via email.
+
+The app is **not yet published** — no TestFlight or App Store link yet.
 
 ---
 
