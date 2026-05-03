@@ -181,6 +181,12 @@ Whenever you add a user-facing string, update `scripts/sync-xcstrings.py` and ru
 
 ---
 
+## Status & license
+
+This is a **personal portfolio project**, not open source. The source is publicly visible for reference only — **no license is granted** for use, copying, modification, or redistribution. Issues and pull requests from outside contributors are not accepted at this time. To discuss any use of the code, contact me directly via email.
+
+---
+
 ## Author
 
 Quentin Aslan — [contact@quentinaslan.com](mailto:contact@quentinaslan.com)
