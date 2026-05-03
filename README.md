@@ -128,6 +128,15 @@ xcodebuild -project Memoire.xcodeproj -scheme MemoireWidget \
 
 ---
 
+## Run on a physical iPhone
+
+1. Open `Memoire.xcodeproj` → select the `Memoire` target → **Signing & Capabilities** → check **Automatically manage signing** → pick your personal Apple Team.
+2. Repeat for the `MemoireWidget` target. **Both targets must share the App Group** `group.com.quentinaslan.Memoire` (already wired in the `.entitlements` files).
+3. Connect the iPhone, select it as destination, hit **Run**.
+4. First launch may require trusting the developer certificate on the device: Settings → General → VPN & Device Management.
+
+---
+
 ## Internationalization (FR + EN)
 
 The app is bilingual (FR source, EN secondary) via Apple String Catalogs (`Memoire/Resources/Localizable.xcstrings`). Source-as-key: a string's key *is* its French phrase.
@@ -171,9 +180,7 @@ Whenever you add a user-facing string, update `scripts/sync-xcstrings.py` and ru
 - Advanced stats
 - ADHD-aware FSRS tweaks (variability, backlog-aware)
 
-### V2
-
-- Web (Vue.js PWA) sharing the Supabase backend
+Smaller in-flight items deliberately deferred are tracked in [`docs/backlog.md`](docs/backlog.md).
 
 ---
 
@@ -186,6 +193,7 @@ Whenever you add a user-facing string, update `scripts/sync-xcstrings.py` and ru
 | [`docs/cahier-des-charges/v1.1.txt`](docs/cahier-des-charges/v1.1.txt) | Full product spec (data models, FSRS config, freemium, monitoring events) |
 | [`docs/research/liquid-glass-brief.md`](docs/research/liquid-glass-brief.md) | External research that shaped the Liquid Glass doctrine |
 | [`docs/v4-copy-and-algorithms.md`](docs/v4-copy-and-algorithms.md) | Source of truth for frozen copy + algorithmic thresholds |
+| [`docs/backlog.md`](docs/backlog.md) | Items deliberately deferred or in standby |
 | [`MemoireWidget/README.md`](MemoireWidget/README.md) | Widget architecture + Xcode setup |
 
 ---
