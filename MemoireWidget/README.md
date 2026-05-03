@@ -1,91 +1,91 @@
 # MemoireWidget
 
-Widget systemSmall qui affiche l'état des révisions du jour sur l'écran d'accueil. Lit la base SwiftData via un App Group partagé avec l'app principale, sans dupliquer le store.
+A systemSmall widget that surfaces today's review state on the home screen. Reads the SwiftData store via an App Group shared with the main app — no duplicated database.
 
 ---
 
-## Ce qu'il affiche
+## What it shows
 
-Le widget rend l'un de quatre états selon l'état de la file quotidienne :
+The widget renders one of four states based on the daily queue:
 
-| État | Vue | Quand |
+| State | View | When |
 |---|---|---|
-| A — **À faire** | `States/DueNowView.swift` | Cartes dues maintenant → compteur |
-| B — **À jour** | `States/UpToDateView.swift` | Aucune carte due → message d'encouragement |
-| C — **Plus tard** | `States/LaterTodayView.swift` | Cartes dues plus tard dans la journée → heure (ex. `14h30`) |
-| D — **Onboarding** | `States/OnboardingView.swift` | App jamais lancée ou snapshot stale > 24 h |
+| A — **Due** | `States/DueNowView.swift` | Cards due now → counter |
+| B — **Up to date** | `States/UpToDateView.swift` | No cards due → encouragement message |
+| C — **Later** | `States/LaterTodayView.swift` | Cards due later today → time (e.g. `14h30`) |
+| D — **Onboarding** | `States/OnboardingView.swift` | App never launched, or snapshot stale > 24 h |
 
-L'état est calculé côté app principale (`Shared/WidgetSnapshot.swift`) puis sérialisé dans le store partagé. Le widget ne fait que lire et rendre.
+The state is computed in the main app (`Shared/WidgetSnapshot.swift`), serialized into the shared store. The widget only reads and renders.
 
 ---
 
 ## Architecture
 
-- **App Group** `group.com.quentinaslan.Memoire` partage le `ModelContainer` SwiftData entre l'app et le widget.
-- **Refresh** uniquement à la transition `.background` (pas `.inactive`) pour éviter les rafraîchissements fantômes — cf. commit `23f49e5`.
-- **Predicate pushdown + schema guard** dans `MemoireWidgetProvider.swift` : le widget tolère un schéma désynchronisé sans crasher (commit `ab27c40`).
-- **Deep-link** : tap sur le widget → `RootView.handleDeepLink` ouvre l'écran approprié via `WidgetLaunchCoordinator` côté app.
-- **Fichiers partagés** entre les deux targets : `AppConstants.swift`, `Color+Tokens.swift`, `Typography.swift`, `Shared/WidgetSnapshot.swift`.
+- **App Group** `group.com.quentinaslan.Memoire` shares the SwiftData `ModelContainer` between app and widget.
+- **Refresh** only on `.background` transitions (not `.inactive`) to avoid ghost refreshes — see commit `23f49e5`.
+- **Predicate pushdown + schema guard** in `MemoireWidgetProvider.swift`: the widget tolerates a desynced schema without crashing (commit `ab27c40`).
+- **Deep-link**: tapping the widget → `RootView.handleDeepLink` opens the right screen via `WidgetLaunchCoordinator` on the app side.
+- **Files shared between targets**: `AppConstants.swift`, `Color+Tokens.swift`, `Typography.swift`, `Shared/WidgetSnapshot.swift`.
 
 ---
 
-## Build et test
+## Build and test
 
 ```bash
-# Build du widget seul
+# Build the widget alone
 xcodebuild -project Memoire.xcodeproj -scheme MemoireWidget \
   -destination 'generic/platform=iOS Simulator' build
 ```
 
-Sur Simulator :
+On Simulator:
 
-1. Lancer l'app au moins une fois (sinon le snapshot n'existe pas → état D).
-2. Home screen sim → long-press → **+** → rechercher **Mémoire** → Add Widget.
-3. Vérifier les 4 états :
-   - **D** — fresh install ou stale > 24 h.
-   - **A** — créer 1 deck + 3 cartes, repli sur home → widget `3`.
-   - **B** — terminer la session de review → widget « À jour ».
-   - **C** — avancer l'horloge sim pour qu'une carte devienne due dans la journée → widget `14h30`.
+1. Launch the app at least once (otherwise no snapshot exists → state D).
+2. Sim home screen → long-press → **+** → search **Mémoire** → Add Widget.
+3. Verify all 4 states:
+   - **D** — fresh install or stale > 24 h.
+   - **A** — create 1 deck + 3 cards, return to home → widget reads `3`.
+   - **B** — finish the review session → widget shows "Up to date".
+   - **C** — advance the sim clock so a card becomes due later today → widget shows `14h30`.
 
 ---
 
-## Setup Xcode (à faire une seule fois sur Mac)
+## Xcode setup (one-time, Mac only)
 
-Les sources Swift, l'`Info.plist` et l'`.entitlements` sont déjà commités. Il reste **6 étapes en GUI Xcode** (l'édition manuelle du `.pbxproj` au format `objectVersion = 77` avec `PBXFileSystemSynchronizedRootGroup` est trop fragile pour être scriptée).
+The Swift sources, `Info.plist`, and `.entitlements` are already committed. **6 GUI steps in Xcode** remain (manual editing of `.pbxproj` in `objectVersion = 77` format with `PBXFileSystemSynchronizedRootGroup` is too brittle to script).
 
-### 1. Créer le target
+### 1. Create the target
 
 Xcode > **File > New > Target…** > **Widget Extension**.
 
-- Product Name : **`MemoireWidget`** (exact, sans accent)
-- Bundle Identifier : auto (`com.quentinaslan.Memoire.MemoireWidget`)
-- Include Configuration Intent : **désactivé** (on utilise `StaticConfiguration`)
-- Include Live Activity : **désactivé**
-- Embed in Application : **Memoire** (sélectionné par défaut)
+- Product Name: **`MemoireWidget`** (exact, no accent)
+- Bundle Identifier: auto (`com.quentinaslan.Memoire.MemoireWidget`)
+- Include Configuration Intent: **off** (we use `StaticConfiguration`)
+- Include Live Activity: **off**
+- Embed in Application: **Memoire** (selected by default)
 
-Clic **Finish**. Si Xcode propose d'activer le scheme, accepter.
+Click **Finish**. If Xcode offers to activate the scheme, accept.
 
-### 2. Supprimer les fichiers Xcode-générés
+### 2. Delete the Xcode-generated files
 
-Xcode crée automatiquement :
+Xcode auto-creates:
 - `MemoireWidget/MemoireWidget.swift`
 - `MemoireWidget/MemoireWidgetBundle.swift`
-- `MemoireWidget/AppIntent.swift` (si jamais coché)
+- `MemoireWidget/AppIntent.swift` (if accidentally checked)
 
-**Supprimer ces 3 fichiers** (Move to Trash) — nos versions pré-écrites les remplacent.
+**Delete these 3 files** (Move to Trash) — our pre-written versions replace them.
 
-Garder :
-- `MemoireWidget/Info.plist` auto-généré → remplacer par celui du repo (déjà commité), ou le laisser en place tant qu'il référence `widgetkit-extension`.
-- `MemoireWidget.entitlements` auto-généré → remplacer par celui du repo.
-- `Assets.xcassets` du widget → laisser tel quel (vide pour l'instant).
+Keep:
+- `MemoireWidget/Info.plist` auto-generated → replace with the one in the repo (already committed), or leave it as long as it references `widgetkit-extension`.
+- `MemoireWidget.entitlements` auto-generated → replace with the one in the repo.
+- `Assets.xcassets` for the widget → leave it (empty for now).
 
-### 3. Importer nos fichiers dans le target
+### 3. Import our files into the target
 
-Dans le **Project Navigator**, glisser/déposer le dossier `MemoireWidget/` du repo dans le groupe `MemoireWidget` du projet.
+In the **Project Navigator**, drag-and-drop the repo's `MemoireWidget/` folder into the project's `MemoireWidget` group.
 
-À la dialog *Choose options* : cocher **Add to targets > MemoireWidget** uniquement (pas l'app).
+In the *Choose options* dialog: check **Add to targets > MemoireWidget** only (not the app).
 
-Vérifier dans le navigateur que tous les `.swift` sont bien listés :
+Verify in the navigator that all `.swift` files are listed:
 ```
 MemoireWidget/
   MemoireWidgetBundle.swift
@@ -101,37 +101,37 @@ MemoireWidget/
     OnboardingView.swift
 ```
 
-### 4. Partager les fichiers communs avec le widget
+### 4. Share the common files with the widget
 
-Sélectionner ces 4 fichiers dans `Memoire/` (déjà membres du target app) :
+Select these 4 files in `Memoire/` (already members of the app target):
 
 - `Memoire/AppConstants.swift`
 - `Memoire/Color+Tokens.swift`
 - `Memoire/Typography.swift`
 - `Memoire/Shared/WidgetSnapshot.swift`
 
-Pour chacun → ouvrir le **File Inspector** (panneau de droite) → section **Target Membership** → cocher **MemoireWidget** en plus de **Memoire**.
+For each → open the **File Inspector** (right panel) → **Target Membership** → check **MemoireWidget** alongside **Memoire**.
 
-### 5. App Group sur les deux targets
+### 5. App Group on both targets
 
-Pour **chaque** target (`Memoire` et `MemoireWidget`) :
+For **each** target (`Memoire` and `MemoireWidget`):
 
-- Onglet **Signing & Capabilities**.
+- **Signing & Capabilities** tab.
 - **+ Capability > App Groups**.
-- Cocher / créer le groupe : **`group.com.quentinaslan.Memoire`**.
+- Check / create the group: **`group.com.quentinaslan.Memoire`**.
 
-Vérifier que l'`.entitlements` du target pointe bien vers notre fichier (il devrait — Xcode l'auto-référence).
+Verify the target's `.entitlements` points to our file (it should — Xcode auto-references it).
 
-### 6. Vérifier le deployment target
+### 6. Verify deployment target
 
 - Target `MemoireWidget` > **General** > **Deployment Info** > **Minimum Deployments** = **iOS 18.0**.
-- Idem pour le scheme du widget si Xcode a créé un scheme séparé.
+- Same for the widget scheme if Xcode created a separate one.
 
 ---
 
 ## Troubleshooting
 
-- **Widget ne s'affiche pas dans la galerie** : vérifier que le scheme `MemoireWidget` build sans erreur, et que l'`Info.plist` contient bien `NSExtensionPointIdentifier = com.apple.widgetkit-extension`.
-- **« No content »** sur le widget : l'app n'a jamais tourné → snapshot absent → état D s'affiche, c'est attendu. Lancer l'app.
-- **Widget ne se rafraîchit pas après review** : vérifier que les deux targets partagent bien le même `group.com.quentinaslan.Memoire` dans Signing & Capabilities.
-- **Crash au tap deep-link** : vérifier que `RootView.handleDeepLink` est bien attaché — il y a un `.onOpenURL` dans `RootView.swift`.
+- **Widget doesn't appear in the gallery**: verify the `MemoireWidget` scheme builds without errors, and that `Info.plist` contains `NSExtensionPointIdentifier = com.apple.widgetkit-extension`.
+- **"No content"** on the widget: the app has never run → snapshot missing → state D shows, expected. Launch the app.
+- **Widget doesn't refresh after a review**: verify both targets share the same `group.com.quentinaslan.Memoire` in Signing & Capabilities.
+- **Crash on deep-link tap**: verify `RootView.handleDeepLink` is wired — there's an `.onOpenURL` in `RootView.swift`.

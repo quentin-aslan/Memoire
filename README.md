@@ -1,101 +1,101 @@
 # Mémoire
 
-**Application iOS de répétition espacée, conçue pour les adultes TDAH.**
+**iOS spaced-repetition app, designed for adults with ADHD.**
 
-Mémoire t'aide à retenir ce qui compte vraiment — avec un algorithme scientifique, une interface sans friction, et un design pensé pour les cerveaux qui s'ennuient vite.
+Mémoire helps you remember what actually matters — with a science-backed algorithm, a frictionless interface, and a design built for brains that bore quickly.
 
 ---
 
-## Ce que fait l'app
+## What the app does
 
-Tu crées des **paquets de cartes** (vocabulaire, formules, concepts, etc.). Chaque jour, Mémoire te présente uniquement les cartes que tu as *besoin* de revoir ce jour-là — ni plus, ni moins.
+You create **decks of cards** (vocabulary, formulas, concepts, etc.). Every day, Mémoire shows you only the cards you *need* to review that day — no more, no less.
 
-Après avoir retourné une carte, tu notes ta mémoire :
+After flipping a card, you rate your memory:
 
-- **À revoir** — tu n'y étais pas du tout
-- **Moyen** — c'est venu, mais avec effort
-- **Facile** — sans hésitation
+- **Again** (`À revoir`) — you didn't get it at all
+- **Good** (`Moyen`) — it came back, but with effort
+- **Easy** (`Facile`) — instantly
 
-L'algorithme ajuste automatiquement la prochaine date de révision pour chaque carte. Plus tu notes bien, plus la carte part loin dans le futur. Plus tu rates, plus elle revient vite.
+The algorithm adjusts the next review date for each card automatically. The better you rate, the further out the card goes. The more you miss, the sooner it returns.
 
 ---
 
 ## Stack
 
-| Couche | Technologie |
+| Layer | Technology |
 |---|---|
-| UI | SwiftUI (iOS 18+, iOS 26 progressif) |
-| Persistance | SwiftData (local) |
-| Algorithme | FSRS v5 via `swift-fsrs` (SPM) |
-| Widget | WidgetKit (target `MemoireWidget`, App Group partagé) |
-| Langage | Swift 5 |
-| Cible minimum | iOS 18.0 |
-| Build | Xcode 26+ / SDK iOS 26 |
+| UI | SwiftUI (iOS 18+, iOS 26 progressive) |
+| Persistence | SwiftData (local) |
+| Algorithm | FSRS v5 via `swift-fsrs` (SPM) |
+| Widget | WidgetKit (target `MemoireWidget`, shared App Group) |
+| Language | Swift 5 |
+| Minimum target | iOS 18.0 |
+| Build | Xcode 26+ / iOS 26 SDK |
 
 ---
 
-## L'algorithme FSRS
+## The FSRS algorithm
 
-FSRS (**Free Spaced Repetition Scheduler**) est l'algorithme de répétition espacée le plus avancé disponible open-source. Il est né comme alternative à l'algorithme SM-2 qu'Anki utilise depuis 30 ans.
+FSRS (**Free Spaced Repetition Scheduler**) is the most advanced open-source spaced-repetition algorithm available today. It was born as an alternative to the SM-2 algorithm Anki has used for 30 years.
 
-**Comment ça marche ?**
+**How it works**
 
-Chaque carte a deux paramètres clés :
-- **Stabilité** (S) : combien de jours la mémoire tient sans révision
-- **Difficulté** (D) : à quel point la carte est dure à mémoriser
+Each card has two key parameters:
+- **Stability** (S) — how many days the memory holds without review
+- **Difficulty** (D) — how hard the card is to memorize
 
-Après chaque révision, FSRS recalcule ces deux valeurs et programme la prochaine révision au moment précis où ta probabilité de te souvenir tombe sous le seuil de rétention configuré (90% par défaut).
+After each review, FSRS recomputes both values and schedules the next review at the precise moment your recall probability drops below the configured retention target (90% by default).
 
-**Ce que ça donne en pratique :**
-- Une carte facile peut partir à 30, 90, 365 jours
-- Une carte difficile revient en 1–3 jours jusqu'à consolidation
-- Les cartes ratées (`.again`) sont repassées dans la même session jusqu'à mémorisation
+**What this means in practice:**
+- An easy card can move out to 30, 90, 365 days
+- A hard card returns in 1–3 days until consolidated
+- Failed cards (`.again`) are re-queued in the same session until learned
 
-**Intégration dans Mémoire :**
+**Integration in Mémoire:**
 - Package `4rays/swift-fsrs` (FSRS v5)
-- **Learning steps** `[10 min → 1 h → 1 j]` gérés dans `ReviewSession` avant graduation vers Review — FSRS n'est appelé qu'à la graduation (cf. `Scheduling/`)
-- File quotidienne : cartes dues en retard d'abord, nouvelles cartes ensuite (plafond configurable, 10/jour par défaut)
+- **Learning steps** `[10 min → 1 h → 1 d]` handled in `ReviewSession` before graduation to Review — FSRS is only invoked at graduation (see `Scheduling/`)
+- Daily queue: overdue cards first, then new cards (configurable cap, 10/day by default)
 
 ---
 
 ## Design
 
-Esthétique **dark luxury** :
-- Fond quasi-noir `#1C1C1E`
-- Or mat `#D4AF37` comme couleur accent principale
-- Typographie **New York** (serif Apple) pour le contenu de mémorisation
-- **Liquid Glass** sur le chrome uniquement (tab bar, boutons de notation) — jamais sur le texte
+**Dark luxury** aesthetic:
+- Near-black background `#1C1C1E`
+- Matte gold `#D4AF37` as the primary accent
+- **New York** (Apple's serif) for memorization content
+- **Liquid Glass** on chrome only (tab bar, rating buttons) — never on text
 
-**Mode Calme** : désactive tous les effets visuels (glass, animations) pour les utilisateurs sensibles à la lumière ou en surcharge sensorielle — un cas fréquent chez les adultes TDAH.
+**Calm Mode** disables every visual effect (glass, animations) for users sensitive to light or in sensory overload — a common case among adults with ADHD.
 
 ---
 
-## Structure du projet
+## Project structure
 
 ```
 Memoire/
-├── Memoire/                    Target app principal
-│   ├── MemoireApp.swift        @main + ModelContainer + injection env
+├── Memoire/                    Main app target
+│   ├── MemoireApp.swift        @main + ModelContainer + env injection
 │   ├── RootView.swift          TabView + onboarding + deep-links
-│   ├── *Screen.swift           Vues (Home, Decks, DeckDetail, CardDetail, Review, Complete, Settings)
-│   ├── OnboardingFlow.swift    4 écrans d'onboarding
-│   ├── AppConstants.swift      Source unique des constantes (logging, FSRS, regularity…)
-│   ├── AppPreferences.swift    @Observable UserDefaults-backed
-│   ├── Color+Tokens.swift      Palette et design tokens
-│   ├── Typography.swift        Système typographique (New York + sans)
-│   ├── GlassSurface.swift      Point d'entrée unique pour Liquid Glass
-│   ├── ReviewSession.swift     State transient (re-queue .again, learning steps)
+│   ├── *Screen.swift           Views (Home, Decks, DeckDetail, CardDetail, Review, Complete, Settings)
+│   ├── OnboardingFlow.swift    4 onboarding pages
+│   ├── AppConstants.swift      Single source of truth for constants (logging, FSRS, regularity…)
+│   ├── AppPreferences.swift    @Observable, UserDefaults-backed
+│   ├── Color+Tokens.swift      Palette and design tokens
+│   ├── Typography.swift        Type system (New York + sans)
+│   ├── GlassSurface.swift      Single entry point for Liquid Glass
+│   ├── ReviewSession.swift     Transient state (re-queue .again, learning steps)
 │   ├── Models/                 SwiftData @Model (Deck, Card, Review, SyncStatus)
-│   ├── Scheduling/             Algorithme FSRS (wrapper, adaptateur, file, migration)
-│   ├── Features/Editor/        Drafts + sheets de création/édition
+│   ├── Scheduling/             FSRS algorithm (wrapper, adapter, queue, migration)
+│   ├── Features/Editor/        Drafts + create/edit sheets
 │   ├── Sheets/                 EditorialSheet, DeckStatsSheet
 │   ├── Shared/                 WidgetSnapshot, DurationFormat, CompositionBar
 │   ├── Services/               Notifications, RegularityCalculator
 │   └── Resources/              Localizable.xcstrings (FR + EN)
-├── MemoireWidget/              Target widget extension (cf. README dédié)
-├── docs/                       ADRs, cahier des charges v1.1, recherche, copy
+├── MemoireWidget/              Widget extension target (see its own README)
+├── docs/                       ADRs, v1.1 spec, research, copy reference
 ├── scripts/                    sync-xcstrings.py
-├── CLAUDE.md                   Conventions de code et de commit
+├── CLAUDE.md                   Code & commit conventions
 └── README.md
 ```
 
@@ -103,84 +103,84 @@ Memoire/
 
 ## Build & run
 
-Le dossier du repo s'écrit `Mémoire` avec accent — le `.xcodeproj`, le target et le scheme s'écrivent tous `Memoire` (sans accent).
+The repo folder is spelled `Mémoire` (with accent) — but the `.xcodeproj`, target, and scheme are all spelled `Memoire` (no accent).
 
 ```bash
-# Build de l'app (simulateur, sans signing)
+# App build (simulator, no signing)
 xcodebuild -project Memoire.xcodeproj -scheme Memoire \
   -destination 'generic/platform=iOS Simulator' build
 
-# Build du widget
+# Widget build
 xcodebuild -project Memoire.xcodeproj -scheme MemoireWidget \
   -destination 'generic/platform=iOS Simulator' build
 ```
 
-⚠️ La destination par défaut du projet Xcode peut être un iPhone physique (signing requis). Forcer le simulateur via `-destination` comme ci-dessus pour build sans Team.
+⚠️ Xcode's default destination may be a physical iPhone (signing required). Force the simulator with `-destination` as shown to build without a Team.
 
 ---
 
-## Internationalisation (FR + EN)
+## Internationalization (FR + EN)
 
-L'app est bilingue (FR source, EN secondaire) via Apple String Catalogs (`Memoire/Resources/Localizable.xcstrings`). Source-as-key : la clé d'une string est la phrase française elle-même.
+The app is bilingual (FR source, EN secondary) via Apple String Catalogs (`Memoire/Resources/Localizable.xcstrings`). Source-as-key: a string's key *is* its French phrase.
 
-À chaque ajout de string utilisateur, mets à jour `scripts/sync-xcstrings.py` puis lance-le pour propager FR → EN + règles CLDR plurielles dans le catalog. Voir `scripts/README.md` pour la procédure complète.
+Whenever you add a user-facing string, update `scripts/sync-xcstrings.py` and run it to propagate FR → EN and CLDR plural rules into the catalog. See `scripts/README.md` for the full procedure.
 
 ---
 
-## Fonctionnalités
+## Features
 
 ### MVP (v1.0)
-- [x] Onboarding 4 écrans (démo flip interactif, Mode Calme, notifications)
-- [x] CRUD paquets et cartes
-- [x] Session de révision avec flip 3D animé
-- [x] Algorithme FSRS v5 intégré
-- [x] File quotidienne intelligente (dues + nouvelles)
-- [x] Score de régularité (30 jours glissants)
-- [x] Mode Calme (accessibilité, photophobie)
-- [x] Notifications quotidiennes configurables
-- [x] Détail carte : état FSRS, difficulté, stabilité, historique
-- [x] Soft delete (préparation sync future)
-- [x] Accessibilité : VoiceOver, Reduce Motion, Reduce Transparency
+- [x] 4-screen onboarding (interactive flip demo, Calm Mode, notifications)
+- [x] Deck and card CRUD
+- [x] Review session with animated 3D flip
+- [x] FSRS v5 algorithm integration
+- [x] Smart daily queue (due + new)
+- [x] Regularity score (rolling 30 days)
+- [x] Calm Mode (accessibility, photophobia)
+- [x] Configurable daily notifications
+- [x] Card detail: FSRS state, difficulty, stability, history
+- [x] Soft delete (sync-ready)
+- [x] Accessibility: VoiceOver, Reduce Motion, Reduce Transparency
 
-### Post-MVP livré
-- [x] Locale anglaise via String Catalog + script de sync FR → EN
-- [x] Widget systemSmall (4 états : à faire / plus tard / à jour / onboarding)
-- [x] Sauvegarde JSON export/import (dev-only, accessible via Settings)
-- [x] Dessin sur le verso de carte (Apple Pencil + doigt)
-- [x] Onboarding NamePage avec prénom personnalisé
-- [x] Passe UX/TDAH sur l'Accueil (ADR-0008)
-- [x] Sheet de suppression custom avec cascade soft-delete
+### Post-MVP shipped
+- [x] English locale via String Catalog + FR → EN sync script
+- [x] systemSmall widget (4 states: due / later / up-to-date / onboarding)
+- [x] JSON backup export/import (dev-only, accessible from Settings)
+- [x] Drawing on the card back (Apple Pencil + finger)
+- [x] Onboarding NamePage with personalized first name
+- [x] ADHD UX pass on Home (ADR-0008)
+- [x] Custom delete sheet with cascading soft-delete
 
 ---
 
 ## Roadmap (V1.1+)
 
-- Sync Supabase + Sign in with Apple
-- Thème clair
-- Import Anki / CSV
+- Supabase sync + Sign in with Apple
+- Light theme
+- Anki / CSV import
 - Apple Watch
-- Stats avancées
-- Modifications FSRS adaptées au TDAH (variabilité, backlog-aware)
+- Advanced stats
+- ADHD-aware FSRS tweaks (variability, backlog-aware)
 
 ### V2
 
-- Version web (Vue.js PWA) partageant la base Supabase
+- Web (Vue.js PWA) sharing the Supabase backend
 
 ---
 
 ## Documentation
 
-| Fichier | Pour qui |
+| File | Audience |
 |---|---|
-| [`CLAUDE.md`](CLAUDE.md) | Conventions de code, build, commit, i18n — à lire avant de contribuer |
-| [`docs/adr/`](docs/adr/) | 8 décisions d'architecture documentées (iOS 18+, Liquid Glass, SwiftData, learning steps, etc.) |
-| [`docs/cahier-des-charges/v1.1.txt`](docs/cahier-des-charges/v1.1.txt) | Spec produit complète (modèles, FSRS, freemium, événements monitoring) |
-| [`docs/research/liquid-glass-brief.md`](docs/research/liquid-glass-brief.md) | Recherche externe ayant cadré la doctrine Liquid Glass |
-| [`docs/v4-copy-and-algorithms.md`](docs/v4-copy-and-algorithms.md) | Source de vérité pour copy figée + seuils algorithmiques |
-| [`MemoireWidget/README.md`](MemoireWidget/README.md) | Architecture widget + setup Xcode |
+| [`CLAUDE.md`](CLAUDE.md) | Code, build, commit, i18n conventions — read before contributing |
+| [`docs/adr/`](docs/adr/) | 8 architecture decisions (iOS 18+, Liquid Glass, SwiftData, learning steps, etc.) |
+| [`docs/cahier-des-charges/v1.1.txt`](docs/cahier-des-charges/v1.1.txt) | Full product spec (data models, FSRS config, freemium, monitoring events) |
+| [`docs/research/liquid-glass-brief.md`](docs/research/liquid-glass-brief.md) | External research that shaped the Liquid Glass doctrine |
+| [`docs/v4-copy-and-algorithms.md`](docs/v4-copy-and-algorithms.md) | Source of truth for frozen copy + algorithmic thresholds |
+| [`MemoireWidget/README.md`](MemoireWidget/README.md) | Widget architecture + Xcode setup |
 
 ---
 
-## Auteur
+## Author
 
 Quentin Aslan — [contact@quentinaslan.com](mailto:contact@quentinaslan.com)
