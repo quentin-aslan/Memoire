@@ -1,11 +1,57 @@
-# MemoireWidget — Setup Xcode (à faire une seule fois sur Mac)
+# MemoireWidget
 
-Les sources Swift, l'`Info.plist` et l'`.entitlements` sont déjà commités.
-Il reste **6 étapes en GUI Xcode** (l'édition manuelle du `.pbxproj` au format
-`objectVersion = 77` avec `PBXFileSystemSynchronizedRootGroup` est trop fragile
-pour être scriptée).
+Widget systemSmall qui affiche l'état des révisions du jour sur l'écran d'accueil. Lit la base SwiftData via un App Group partagé avec l'app principale, sans dupliquer le store.
 
-## Étapes
+---
+
+## Ce qu'il affiche
+
+Le widget rend l'un de quatre états selon l'état de la file quotidienne :
+
+| État | Vue | Quand |
+|---|---|---|
+| A — **À faire** | `States/DueNowView.swift` | Cartes dues maintenant → compteur |
+| B — **À jour** | `States/UpToDateView.swift` | Aucune carte due → message d'encouragement |
+| C — **Plus tard** | `States/LaterTodayView.swift` | Cartes dues plus tard dans la journée → heure (ex. `14h30`) |
+| D — **Onboarding** | `States/OnboardingView.swift` | App jamais lancée ou snapshot stale > 24 h |
+
+L'état est calculé côté app principale (`Shared/WidgetSnapshot.swift`) puis sérialisé dans le store partagé. Le widget ne fait que lire et rendre.
+
+---
+
+## Architecture
+
+- **App Group** `group.com.quentinaslan.Memoire` partage le `ModelContainer` SwiftData entre l'app et le widget.
+- **Refresh** uniquement à la transition `.background` (pas `.inactive`) pour éviter les rafraîchissements fantômes — cf. commit `23f49e5`.
+- **Predicate pushdown + schema guard** dans `MemoireWidgetProvider.swift` : le widget tolère un schéma désynchronisé sans crasher (commit `ab27c40`).
+- **Deep-link** : tap sur le widget → `RootView.handleDeepLink` ouvre l'écran approprié via `WidgetLaunchCoordinator` côté app.
+- **Fichiers partagés** entre les deux targets : `AppConstants.swift`, `Color+Tokens.swift`, `Typography.swift`, `Shared/WidgetSnapshot.swift`.
+
+---
+
+## Build et test
+
+```bash
+# Build du widget seul
+xcodebuild -project Memoire.xcodeproj -scheme MemoireWidget \
+  -destination 'generic/platform=iOS Simulator' build
+```
+
+Sur Simulator :
+
+1. Lancer l'app au moins une fois (sinon le snapshot n'existe pas → état D).
+2. Home screen sim → long-press → **+** → rechercher **Mémoire** → Add Widget.
+3. Vérifier les 4 états :
+   - **D** — fresh install ou stale > 24 h.
+   - **A** — créer 1 deck + 3 cartes, repli sur home → widget `3`.
+   - **B** — terminer la session de review → widget « À jour ».
+   - **C** — avancer l'horloge sim pour qu'une carte devienne due dans la journée → widget `14h30`.
+
+---
+
+## Setup Xcode (à faire une seule fois sur Mac)
+
+Les sources Swift, l'`Info.plist` et l'`.entitlements` sont déjà commités. Il reste **6 étapes en GUI Xcode** (l'édition manuelle du `.pbxproj` au format `objectVersion = 77` avec `PBXFileSystemSynchronizedRootGroup` est trop fragile pour être scriptée).
 
 ### 1. Créer le target
 
@@ -81,27 +127,7 @@ Vérifier que l'`.entitlements` du target pointe bien vers notre fichier (il dev
 - Target `MemoireWidget` > **General** > **Deployment Info** > **Minimum Deployments** = **iOS 18.0**.
 - Idem pour le scheme du widget si Xcode a créé un scheme séparé.
 
-## Build et test sim
-
-```bash
-# Build app
-xcodebuild -project Memoire.xcodeproj -scheme Memoire \
-  -destination 'generic/platform=iOS Simulator' build
-
-# Build widget extension
-xcodebuild -project Memoire.xcodeproj -scheme MemoireWidget \
-  -destination 'generic/platform=iOS Simulator' build
-```
-
-Sur Simulator :
-
-1. Lancer l'app au moins une fois (sinon le snapshot n'existe pas → état D).
-2. Home screen sim > long-press > **+** > rechercher **Mémoire** > Add Widget.
-3. Vérifier les 4 états :
-   - **D** — fresh install ou stale > 24 h.
-   - **A** — créer 1 deck + 3 cartes, repli sur home → widget `3`.
-   - **B** — terminer la session de review → widget « À jour ».
-   - **C** — avancer l'horloge sim pour qu'une carte devienne due dans la journée → widget `14h30`.
+---
 
 ## Troubleshooting
 
