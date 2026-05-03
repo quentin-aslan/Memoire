@@ -27,6 +27,7 @@ L'algorithme ajuste automatiquement la prochaine date de révision pour chaque c
 | UI | SwiftUI (iOS 18+, iOS 26 progressif) |
 | Persistance | SwiftData (local) |
 | Algorithme | FSRS v5 via `swift-fsrs` (SPM) |
+| Widget | WidgetKit (target `MemoireWidget`, App Group partagé) |
 | Langage | Swift 5 |
 | Cible minimum | iOS 18.0 |
 | Build | Xcode 26+ / SDK iOS 26 |
@@ -72,16 +73,49 @@ Esthétique **dark luxury** :
 ## Structure du projet
 
 ```
-Mémoire/
-├── Models/              SwiftData (@Model Deck, Card, Review)
-├── Scheduling/          Algorithme FSRS (wrapper, adaptateur, file quotidienne)
-├── Features/Editor/     Création et édition de paquets et cartes
-├── Services/            Notifications, calcul de régularité
-├── *Screen.swift        Vues principales (Home, Review, Decks, Settings…)
-└── Color+Tokens.swift   Palette de design tokens
-    Typography.swift     Système typographique
-    GlassSurface.swift   Point d'entrée unique pour Liquid Glass
+Memoire/
+├── Memoire/                    Target app principal
+│   ├── MemoireApp.swift        @main + ModelContainer + injection env
+│   ├── RootView.swift          TabView + onboarding + deep-links
+│   ├── *Screen.swift           Vues (Home, Decks, DeckDetail, CardDetail, Review, Complete, Settings)
+│   ├── OnboardingFlow.swift    4 écrans d'onboarding
+│   ├── AppConstants.swift      Source unique des constantes (logging, FSRS, regularity…)
+│   ├── AppPreferences.swift    @Observable UserDefaults-backed
+│   ├── Color+Tokens.swift      Palette et design tokens
+│   ├── Typography.swift        Système typographique (New York + sans)
+│   ├── GlassSurface.swift      Point d'entrée unique pour Liquid Glass
+│   ├── ReviewSession.swift     State transient (re-queue .again, learning steps)
+│   ├── Models/                 SwiftData @Model (Deck, Card, Review, SyncStatus)
+│   ├── Scheduling/             Algorithme FSRS (wrapper, adaptateur, file, migration)
+│   ├── Features/Editor/        Drafts + sheets de création/édition
+│   ├── Sheets/                 EditorialSheet, DeckStatsSheet
+│   ├── Shared/                 WidgetSnapshot, DurationFormat, CompositionBar
+│   ├── Services/               Notifications, RegularityCalculator
+│   └── Resources/              Localizable.xcstrings (FR + EN)
+├── MemoireWidget/              Target widget extension (cf. README dédié)
+├── docs/                       ADRs, cahier des charges v1.1, recherche, copy
+├── scripts/                    sync-xcstrings.py
+├── CLAUDE.md                   Conventions de code et de commit
+└── README.md
 ```
+
+---
+
+## Build & run
+
+Le dossier du repo s'écrit `Mémoire` avec accent — le `.xcodeproj`, le target et le scheme s'écrivent tous `Memoire` (sans accent).
+
+```bash
+# Build de l'app (simulateur, sans signing)
+xcodebuild -project Memoire.xcodeproj -scheme Memoire \
+  -destination 'generic/platform=iOS Simulator' build
+
+# Build du widget
+xcodebuild -project Memoire.xcodeproj -scheme MemoireWidget \
+  -destination 'generic/platform=iOS Simulator' build
+```
+
+⚠️ La destination par défaut du projet Xcode peut être un iPhone physique (signing requis). Forcer le simulateur via `-destination` comme ci-dessus pour build sans Team.
 
 ---
 
@@ -93,8 +127,9 @@ L'app est bilingue (FR source, EN secondaire) via Apple String Catalogs (`Memoir
 
 ---
 
-## Fonctionnalités MVP
+## Fonctionnalités
 
+### MVP (v1.0)
 - [x] Onboarding 4 écrans (démo flip interactif, Mode Calme, notifications)
 - [x] CRUD paquets et cartes
 - [x] Session de révision avec flip 3D animé
@@ -107,6 +142,15 @@ L'app est bilingue (FR source, EN secondaire) via Apple String Catalogs (`Memoir
 - [x] Soft delete (préparation sync future)
 - [x] Accessibilité : VoiceOver, Reduce Motion, Reduce Transparency
 
+### Post-MVP livré
+- [x] Locale anglaise via String Catalog + script de sync FR → EN
+- [x] Widget systemSmall (4 états : à faire / plus tard / à jour / onboarding)
+- [x] Sauvegarde JSON export/import (dev-only, accessible via Settings)
+- [x] Dessin sur le verso de carte (Apple Pencil + doigt)
+- [x] Onboarding NamePage avec prénom personnalisé
+- [x] Passe UX/TDAH sur l'Accueil (ADR-0008)
+- [x] Sheet de suppression custom avec cascade soft-delete
+
 ---
 
 ## Roadmap (V1.1+)
@@ -114,9 +158,26 @@ L'app est bilingue (FR source, EN secondaire) via Apple String Catalogs (`Memoir
 - Sync Supabase + Sign in with Apple
 - Thème clair
 - Import Anki / CSV
-- Widgets et Apple Watch
+- Apple Watch
 - Stats avancées
 - Modifications FSRS adaptées au TDAH (variabilité, backlog-aware)
+
+### V2
+
+- Version web (Vue.js PWA) partageant la base Supabase
+
+---
+
+## Documentation
+
+| Fichier | Pour qui |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Conventions de code, build, commit, i18n — à lire avant de contribuer |
+| [`docs/adr/`](docs/adr/) | 8 décisions d'architecture documentées (iOS 18+, Liquid Glass, SwiftData, learning steps, etc.) |
+| [`docs/cahier-des-charges/v1.1.txt`](docs/cahier-des-charges/v1.1.txt) | Spec produit complète (modèles, FSRS, freemium, événements monitoring) |
+| [`docs/research/liquid-glass-brief.md`](docs/research/liquid-glass-brief.md) | Recherche externe ayant cadré la doctrine Liquid Glass |
+| [`docs/v4-copy-and-algorithms.md`](docs/v4-copy-and-algorithms.md) | Source de vérité pour copy figée + seuils algorithmiques |
+| [`MemoireWidget/README.md`](MemoireWidget/README.md) | Architecture widget + setup Xcode |
 
 ---
 
